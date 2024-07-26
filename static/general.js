@@ -1,48 +1,3 @@
-function joinGame(name, serverID) {
-  console.log(name, serverID);
-  fetch("/gamelobby", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ name: name }),
-  })
-    .then((response) => {
-      if (response.ok) {
-        return response.text(); // Get the HTML content
-      } else {
-        console.error("Failed to fetch from /gamelobby");
-      }
-    })
-    .then((html) => {
-      if (html) {
-        document.body.innerHTML = html; // Write the HTML content to the DOM
-        joinGameServer(name, serverID); // Reinitialize the WebSocket connection
-        attachEventListeners();
-      }
-    })
-    .catch((error) => {
-      console.error("Error:", error);
-    });
-}
-
-function createGame() {
-  console.log("HERE");
-  fetch("/createServer", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-  })
-    .then((response) => response.text())
-    .then((html) => {
-      document.getElementById("createGameButton").outerHTML = html;
-    })
-    .catch((error) => {
-      console.error("Error:", error);
-    });
-}
-
 let selectedBox;
 let selectedBoxIndex;
 let currentBoxIndex = 0;
@@ -113,6 +68,14 @@ function attachEventListeners() {
   document.addEventListener("keydown", handleKeydown);
 }
 
+function deleteCurrentPlayers() {
+  const playerList = document.getElementById("player-list");
+  playerList.innerHTML = "";
+  playerNameDivs.forEach((div) => {
+    div.remove();
+  });
+}
+
 function buildPlayerItem(playerInfo) {
   // Check if the player is the current player
 
@@ -146,4 +109,23 @@ function buildPlayerItem(playerInfo) {
     event.stopPropagation(); // Prevent the document click event from firing
     playerRowClicked(playerContainer);
   });
+}
+
+function buildPlayerLobbyView(playerInfo) {
+  // Check if the player is the current player
+
+  var playerList = document.getElementById("player-list");
+
+  // Create a new player container
+  var playerContainer = document.createElement("div");
+  playerContainer.className = "player-container";
+
+  // Create player name element
+  var playerName = document.createElement("h2");
+  playerName.className = "player-name";
+  playerName.innerText = playerInfo.Name || "Unknown";
+  playerContainer.appendChild(playerName);
+
+  // Append the new player container to the player list
+  playerList.appendChild(playerContainer);
 }

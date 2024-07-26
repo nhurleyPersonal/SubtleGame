@@ -4,7 +4,8 @@ let currentPlayer;
 
 async function joinGameServer(name, serverID) {
   try {
-    ws = new WebSocket("ws://" + window.location.host + "/ws");
+    const wsUrl = `ws://${window.location.host}/ws?serverID=${serverID}`;
+    ws = new WebSocket(wsUrl);
   } catch (error) {
     console.error("WebSocket creation error:", error);
   }
@@ -42,6 +43,10 @@ var messageHandlers = {
     document.body.innerHTML = htmlContent;
   },
 
+  gameStarted: function (message) {
+    afterStartGame();
+  },
+
   whoami: function (message) {
     var playerInfo = JSON.parse(message.body);
     document.getElementById("playerName").innerText =
@@ -64,6 +69,7 @@ var messageHandlers = {
 
   currentPlayers: function (message) {
     var currentPlayers = JSON.parse(message.body);
+    deleteCurrentPlayers();
     currentPlayers.map((player) => {
       if (currentPlayersIDs.includes(player.id)) {
         return;
@@ -111,6 +117,15 @@ function sendMessage(type) {
     body: "",
   };
   window.ws.send(JSON.stringify(message));
+}
+
+function sendStartGame() {
+  console.log("Starting game");
+  var message = {
+    type: "startGame",
+    body: { leader: "leader" },
+  };
+  ws.send(JSON.stringify(message));
 }
 
 function setWord(word) {

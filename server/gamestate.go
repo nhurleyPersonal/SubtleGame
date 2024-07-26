@@ -46,9 +46,12 @@ func (gs *GameState) NewPlayer(name string) Player {
 	}
 }
 
-func (gs *GameState) StartGame() {
+func (gs *GameState) StartGame() bool {
 	gs.mu.Lock()
 	defer gs.mu.Unlock()
+	if gs.Started {
+		return false
+	}
 	gs.Started = true
 	gs.Round = 1
 
@@ -60,13 +63,19 @@ func (gs *GameState) StartGame() {
 		defer gs.mu.Unlock()
 		gs.Round = 2
 	}()
+	return true
 }
 
 func (gs *GameState) SetWord(player *Player, word string) error {
 	gs.mu.Lock()
 	defer gs.mu.Unlock()
 	if !gs.Started || gs.Round != 1 {
-		return errors.New("Word not set, it needs to be set in the first round.")
+		return errors.New("out of order")
+	}
+	// Check spelling of a word
+	ok := Spellcheck.SearchDirect(word)
+	if !ok {
+		return errors.New("noword")
 	}
 	player.Word = word
 	return nil
@@ -92,14 +101,14 @@ func (gs *GameState) JoinGame(name string, c *Client, hub *Hub) (Player, error) 
 
 }
 
-func (gs *GameState) GetPlayer(playerId string) *Player {
+func (gs *GameState) GetPlayer(playerId string) (*Player, bool) {
 	gs.mu.Lock()
 	defer gs.mu.Unlock()
 	player, ok := gs.Players[playerId]
 	if !ok {
-		return nil
+		return nil, false
 	}
-	return &player
+	return &player, true
 }
 
 func (gs *GameState) GetPlayers() []Player {
@@ -126,16 +135,17 @@ func (gs *GameState) GetPassToClientPlayers() []PassToClientPlayer {
 	return players
 }
 
-func (gs *GameState) RemovePlayer(c *Client) {
+func (gs *GameState) RemovePlayer(player Player) bool {
 	gs.mu.Lock()
 	defer gs.mu.Unlock()
-	log.Println("Removing player", c.player)
-	_, ok := gs.Players[c.player.ID]
+	log.Println("Removing player", player)
+	_, ok := gs.Players[player.ID]
 	if !ok {
-		return
+		return false
 	}
-	delete(gs.Players, c.player.ID)
-	log.Printf("Removed player with ID %s", c.player.ID)
+	delete(gs.Players, player.ID)
+	log.Printf("Removed player with ID %s", player.ID)
+	return true
 }
 
 // func GuessWord(hub *Hub, playerOne *Player, playerTwo *Player, word string) {

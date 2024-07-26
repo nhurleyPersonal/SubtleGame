@@ -11,9 +11,18 @@ import (
 )
 
 func connectionHandler(w http.ResponseWriter, r *http.Request) {
+
+	serverID := r.URL.Query().Get("serverID")
+	log.Println("SERVER ID", serverID)
+	hub, ok := hubMultiplexer.hubs[serverID]
+	if !ok {
+		log.Println("Hub not found")
+		return
+	}
+
 	// Check if the request is a WebSocket upgrade request
 	if websocket.IsWebSocketUpgrade(r) {
-		err := clientJoinsLobby(w, r)
+		err := clientJoinsLobby(w, r, hub)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
@@ -21,7 +30,7 @@ func connectionHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func clientJoinsLobby(w http.ResponseWriter, r *http.Request) error {
+func clientJoinsLobby(w http.ResponseWriter, r *http.Request, hub *Hub) error {
 	ws, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		log.Println("connection error:", err)
@@ -31,7 +40,7 @@ func clientJoinsLobby(w http.ResponseWriter, r *http.Request) error {
 	client := &Client{conn: ws, send: make(chan Message, 256), sendJSON: make(chan JSONMessage, 256)} // Increase buffer size
 
 	go client.ReadPump(hub)
-	go client.WritePump()
+	go client.WritePump(hub)
 
 	return nil
 }
@@ -69,6 +78,8 @@ func gameLobbyHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	tmpl.Execute(w, nil)
+
+	connectionHandler(w, r)
 }
 
 func createLobbyHandler(w http.ResponseWriter, r *http.Request) {
@@ -81,9 +92,9 @@ func createLobbyHandler(w http.ResponseWriter, r *http.Request) {
 
 func Router() {
 	http.HandleFunc("/ws", connectionHandler)
-	http.HandleFunc("/gamelobby", gameLobbyHandler)
 	http.HandleFunc("/favicon.ico", faviconHandler)
 	http.HandleFunc("/createServer", createLobbyHandler)
+	http.HandleFunc("/gamelobby", gameLobbyHandler)
 	fs := http.FileServer(http.Dir("static"))
 	http.Handle("/static/", http.StripPrefix("/static/", fs))
 

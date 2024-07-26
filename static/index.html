@@ -10,6 +10,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
     <script src="/static/general.js"></script>
     <script src="/static/ws.js"></script>
+    <script src="/static/game.js"></script>
 </head>
 <body>
     <div class="index-page-container">
@@ -20,7 +21,7 @@
             <input type="text" id="playername" placeholder="Name:" class="input-field" autocomplete="off">
             <input type="text" id="serverid" placeholder="Server ID:" class="input-field" autocomplete="off">
             <div class="title-button-container">
-                <button id="createGameButton" class="server-create-button" onclick="createGame()">Create Game</button> 
+                <button id="createGameButton" class="server-create-button" onclick="createLobby()">Create Game</button> 
                 <button class="join-game-button" onclick="joinGame(document.getElementById('playername').value, document.getElementById('serverid').value)">Join Game</button>
             </div>        
         </div>

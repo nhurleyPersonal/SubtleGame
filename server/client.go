@@ -55,13 +55,9 @@ func handleJoinGame(hub *Hub, client *Client, msg JSONMessage) {
 		return
 	}
 
-	hub, ok := hubMultiplexer.hubs[body.ServerID]
-	if !ok {
-		log.Println("Hub not found")
-		return
-	}
 	hub.register <- client
 	newPlayer, err := hub.gameState.JoinGame(body.PlayerName, client, hub)
+	client.player = newPlayer
 	if err != nil {
 		log.Println("error joining game:", err)
 		return
@@ -82,11 +78,14 @@ func handleJoinGame(hub *Hub, client *Client, msg JSONMessage) {
 		Body: string(newPlayerJSON),
 	}
 
+	log.Println("SENDING MESSAGE TO EVERYONE", hub.clients[client])
+
 	hub.broadcast <- sendToEveryone
 	client.send <- sendToPlayer
 }
 
 func handleStartGame(hub *Hub, client *Client, msg JSONMessage) {
+	log.Println("HUB CLIENTS 11111", hub.clients)
 	body := struct {
 		Leader string `json:"leader"`
 	}{}
@@ -94,10 +93,14 @@ func handleStartGame(hub *Hub, client *Client, msg JSONMessage) {
 		log.Println("unmarshal error:", err)
 		return
 	}
+	log.Println(body.Leader)
 	if body.Leader == "leader" {
-		hub.gameState.StartGame()
-		hub.broadcast <- Message{
-			Type: "gameStarted",
+		didStart := hub.gameState.StartGame()
+		if didStart {
+			hub.broadcast <- Message{
+				Type: "gameStarted",
+			}
+			log.Println("GAME STARTED")
 		}
 	} else {
 		client.send <- Message{
@@ -121,6 +124,9 @@ func handleSetWord(hub *Hub, client *Client, msg JSONMessage) {
 			Type: "invalidWord",
 		}
 		return
+	}
+	client.send <- Message{
+		Type: "wordSet",
 	}
 }
 
@@ -156,13 +162,10 @@ func handleShowPage(client *Client, msg JSONMessage) {
 
 func (c *Client) ReadPump(hub *Hub) {
 	defer func() {
-		if c.player.ID != "" {
-			log.Println("Closing WebSocket connection in ReadPump")
-			log.Println("Closing websocket for client", c.player.ID) // Debugging log
-			hub.unregister <- c
-		} else {
-			c.conn.Close()
-		}
+		log.Println("ReadPump: Sending client to unregister channel")
+		hub.unregister <- c
+		c.conn.Close()
+		log.Println("ReadPump: Client disconnected, Read Closed")
 	}()
 	for {
 		_, message, err := c.conn.ReadMessage() // Read a message from the WebSocket connection
@@ -177,6 +180,7 @@ func (c *Client) ReadPump(hub *Hub) {
 			log.Println("unmarshal error:", err)
 			continue // Continue to the next iteration on error
 		}
+		log.Println("HUB CLIENTS 33333", hub.clients)
 		if handler, found := messageHandlers[msgJSON.Type]; found {
 			handler(hub, c, msgJSON)
 		} else {
@@ -185,12 +189,13 @@ func (c *Client) ReadPump(hub *Hub) {
 	}
 }
 
-func (c *Client) WritePump() {
-
+func (c *Client) WritePump(hub *Hub) {
 	defer func() {
+		log.Println("WritePump: Sending client to unregister channel")
+		hub.unregister <- c
 		c.conn.Close()
+		log.Println("WritePump: Client disconnected, Write Closed")
 	}()
-
 	for {
 		select {
 		case msg := <-c.send:

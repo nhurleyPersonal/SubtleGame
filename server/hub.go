@@ -42,7 +42,7 @@ func (h *Hub) CleanUp(c *Client) {
 		delete(h.clients, c)
 		close(c.send)
 		close(c.sendJSON)
-		h.gameState.RemovePlayer(c)
+		h.gameState.RemovePlayer(c.player)
 		c.conn.Close()
 	}
 
@@ -58,7 +58,7 @@ func (h *Hub) CleanUp(c *Client) {
 	}
 
 	log.Println("Broadcasting currentPlayersMessage:", currentPlayersMessage.Body, currentPlayersMessage.Type)
-	// h.broadcast <- currentPlayersMessage
+	h.broadcast <- currentPlayersMessage
 	log.Println("Sent current players message", currentPlayersMessage)
 }
 
@@ -83,18 +83,15 @@ func (h *Hub) run() {
 
 			client.send <- sendInitalPlayers
 			h.mu.Unlock() // Release the lock
-		case c := <-h.unregister:
-			log.Println("Unregistering client")
-			h.mu.Lock() // Acquire the lock
-			if _, ok := h.clients[c]; ok {
-				delete(h.clients, c)
-				close(c.send)
-				close(c.sendJSON)
-				c.conn.Close()
-			}
-			h.mu.Unlock() // Release the lock
-		case message := <-h.broadcast:
 
+		case c := <-h.unregister:
+			log.Println("Unregistering client", c)
+			h.mu.Lock() // Acquire the lock
+			defer h.mu.Unlock()
+			h.CleanUp(c)
+
+		case message := <-h.broadcast:
+			log.Println("BROADCASTING MESSAGE", message)
 			h.mu.Lock() // Acquire the lock
 			for client := range h.clients {
 				log.Println("Starting broadcast")

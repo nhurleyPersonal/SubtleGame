@@ -19,6 +19,12 @@ body {
     min-width: 100vw;
 }
 
+.align-trailing {
+    display: flex;
+    justify-content: flex-end;
+    width: 100%;
+}
+
 .index-page-container {
     display: flex;
     flex-direction: column;
@@ -111,6 +117,18 @@ body {
     border: none;
     border-radius: 5px;
     padding: 15px;
+    cursor: pointer;
+}
+
+.start-game-button {
+    font-size: 24px; 
+    margin: 0px 10px; 
+    text-align: center;
+    color: #ffffff;
+    min-width: 20%;
+    background-color: #4CAF50;
+    border: none;
+    border-radius: 5px;
     cursor: pointer;
 }
 

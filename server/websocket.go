@@ -2,12 +2,10 @@ package server
 
 import (
 	"log"
-	"math/rand"
 	"net/http"
-	"time"
 
 	"github.com/gorilla/websocket"
-	// "github.com/makifdb/spellcheck"
+	"github.com/makifdb/spellcheck"
 )
 
 // Message represents a WebSocket message
@@ -24,14 +22,10 @@ var upgrader = websocket.Upgrader{
 	CheckOrigin:     func(r *http.Request) bool { return true }, // Allow all origins
 }
 
-var hub = NewHub()
 var hubMultiplexer = NewHubMultiplexer()
 
-// var Spellcheck = spellcheck.New()
-
-func init() {
-	rand.Seed(time.Now().UnixNano())
-}
+// Init spellchecker
+var Spellcheck, _ = spellcheck.New()
 
 // Start the server and the hub
 func Start() {

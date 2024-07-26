@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HTMX WebSocket Example</title>
+    <script src="https://unpkg.com/htmx.org@1.8.5"></script>
+    <script src="https://unpkg.com/htmx-ext-ws@2.0.0/ws.js"></script>
+    <link rel="stylesheet" type="text/css" href="/static/styles.css">
+    <script src="/static/ws.js"></script>
+    <script src="/static/general.js?v=1.1"></script>
+    <script src="/static/inline.js?v=1.0"></script>
+    
+</head>
+<body>
+    <div class="lobby-container">
+        <div id="player-container" class="self-player-container">
+            <h2 id="playerName" class="self-player-name"></h2>
+            <div class="letters-container">
+                <div class="letter"></div>
+                <div class="letter"></div>
+                <div class="letter"></div>
+                <div class="letter"></div>
+                <div class="letter"></div>
+                <div class="letter"></div>
+            </div>
+        </div>
+        
+        <div id="player-list" class="player-list">
+            
+        </div>
+    </div>
+    
+</body>
+</html>

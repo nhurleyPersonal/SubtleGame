@@ -126,10 +126,14 @@ body {
     text-align: center;
     color: #ffffff;
     min-width: 20%;
-    background-color: #4CAF50;
+    background-color: #888888;
     border: none;
     border-radius: 5px;
     cursor: pointer;
+}
+
+.start-game-button-ready {
+    background-color: #74e880;
 }
 
 .server-created-text {
@@ -156,7 +160,7 @@ body {
     font-weight: bold;
     color: #ffffff;
     text-align: center; /* Center text */
-    width: 30%
+    width: 40%
 }
 
 .player-name {
@@ -166,10 +170,14 @@ body {
     font-weight: bold;
     color: #888888;
     text-align: center; /* Center text */
-    width: 30%;
+    width: 40%;
 }
 
 .player-container-clicked .player-name {
+    color: #74e880;
+}
+
+.player-container-clicked .self-player-name {
     color: #74e880;
 }
 
@@ -183,6 +191,13 @@ body {
 }
 
 .lobby-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+}
+
+.game-container {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -208,7 +223,42 @@ body {
 .letters-container {
     display: flex;
     flex-direction: row;
-    min-width: 70%;
+    justify-content: center;
+    align-items: center;
+    min-width: 60%;
+}
+
+.send-word-button-container {
+    display: flex;
+    justify-content: flex-end;
+    align-items: flex-end;
+    flex-grow: 1;
+    padding-right: 20px;
+    cursor:pointer
+}
+
+.send-word-button {
+  font-variation-settings:
+  'FILL' 0,
+  'wght' 400,
+  'GRAD' 0,
+  'opsz' 24;
+  font-size: 36px;
+  color: #888888;
+}
+
+.send-word-button-ready {
+    
+    color: #fff;
+  }
+
+.invalid-word-error {
+    display: none;
+}
+
+.invalid-word-visible {
+    color: red;
+    font-size: 24px;
 }
 
 .letter {
@@ -218,6 +268,15 @@ body {
     margin-right: 15px;
     
 }
+
+.letter-filled {
+    color: #fff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: bold;
+  }
+
 .player-container-clicked .letter-highlight {
     background-color: #888888;
 }
@@ -228,6 +287,8 @@ body {
     align-items: center;
     padding: 20px;
     min-width: 50vw;
+    flex-grow: 1;
+    flex-wrap: wrap;
 
 }
 
@@ -244,6 +305,23 @@ body {
     background-color: #373737;
 }
 
+/* Hide the checkmark by default */
+.checkmark {
+    display: none;
+}
+
+.checkmark-ready {
+    display: inline;
+    font-size: 24px;
+    color: green;
+}
+
+.player-name-checkmark-box {
+    display: flex;
+    justify-content: start;
+    align-items: center;
+    flex-grow: 1;
+}
 
 /* Media query for mobile devices */
 @media (max-width: 600px) {

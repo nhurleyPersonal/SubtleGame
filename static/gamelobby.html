@@ -16,27 +16,34 @@
         <template id="lobbyview">
             <div class="lobby-container">
                 <div id="player-container" class="self-player-container">
-                    <h2 id="playerName" class="self-player-name"></h2>
+                    <div class="player-name-checkmark-box">
+                        <span id="invalid-word-error" class="invalid-word-error">&#10008;</span>
+                        <span class="checkmark">&#10004;</span> <h2 id="player-name" class="player-name"></h2>
+                    </div>
                     <div class="letters-container">
                         <div class="letter"></div>
                         <div class="letter"></div>
                         <div class="letter"></div>
                         <div class="letter"></div>
                         <div class="letter"></div>
-                        <div class="letter"></div>
+                        <div class="send-word-button-container">
+                            <span onclick="sendWord()" class="material-symbols-outlined send-word-button">
+                                send
+                            </span>
+                        </div>
                     </div>
                 </div>
                 <div id="player-list" class="player-list"> </div>
                 <div class="align-trailing">
                     <button class="start-game-button" id="start-game" onclick="startGame()">Start Game</button>
                 </div>
-                
             </div>
         </template>
         <template id="gameroom">
             <div class="game-container">
                 <p>Round 1</p>
                 <div id="game-timer" class="timer">00:20</div>
+                <div id="player-list" class="player-list"> </div>
             </div>
         </template>
     </body>

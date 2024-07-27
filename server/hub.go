@@ -66,29 +66,53 @@ func (h *Hub) run() {
 	for {
 		select {
 		case client := <-h.register:
+			log.Println("REGISTERING CLIENT", client)
 			h.mu.Lock() // Acquire the lock
-
+			log.Println("REGISTERING CLIENT 2", client)
 			h.clients[client] = true
+			log.Println("REGISTERING CLIENT 3", client)
+			log.Println("GAMESTATE AAAAAA", h.gameState.GetPlayers())
 
-			currentPlayers, err := json.Marshal(h.gameState.GetPlayers())
+			newPlayer, err := h.gameState.JoinGame(client.playerName, client, h)
+			client.player = newPlayer
 			if err != nil {
-				log.Println("error marshalling game state:", err)
+				log.Println("error joining game:", err)
 				return
 			}
 
-			sendInitalPlayers := Message{
-				Type: "currentPlayers",
-				Body: string(currentPlayers),
+			log.Println("MADE IT HERWE !!!!!")
+
+			newPlayerJSON, err := json.Marshal(newPlayer)
+			if err != nil {
+				log.Println("error marshalling game state:", err)
 			}
 
-			client.send <- sendInitalPlayers
+			playersJSON, err := json.Marshal(h.gameState.GetPlayers())
+			if err != nil {
+				log.Println("error marshalling players:", err)
+				return
+			}
+
+			sendToPlayer := Message{
+				Type: "whoami",
+				Body: string(newPlayerJSON),
+			}
+
+			client.send <- sendToPlayer
+
+			sendInitalPlayers := Message{
+				Type: "currentPlayers",
+				Body: string(playersJSON),
+			}
+
+			h.broadcast <- sendInitalPlayers
 			h.mu.Unlock() // Release the lock
 
 		case c := <-h.unregister:
 			log.Println("Unregistering client", c)
 			h.mu.Lock() // Acquire the lock
-			defer h.mu.Unlock()
 			h.CleanUp(c)
+			h.mu.Unlock()
 
 		case message := <-h.broadcast:
 			log.Println("BROADCASTING MESSAGE", message)
@@ -146,7 +170,7 @@ func (hm *HubMultiplexer) GetHub(lobbyID string) *Hub {
 
 	hub, exists := hm.hubs[lobbyID]
 	if !exists {
-		log.Println("Hub not found")
+		log.Println("a")
 		return nil
 	}
 	return hub

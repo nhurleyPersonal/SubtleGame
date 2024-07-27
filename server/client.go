@@ -17,10 +17,11 @@ type SendPlayerInfoMessage struct {
 
 // Client represents a WebSocket client
 type Client struct {
-	conn     *websocket.Conn
-	send     chan Message
-	sendJSON chan JSONMessage
-	player   Player
+	conn       *websocket.Conn
+	send       chan Message
+	sendJSON   chan JSONMessage
+	playerName string
+	player     Player
 }
 
 type JSONMessage struct {
@@ -49,39 +50,22 @@ func handleJoinGame(hub *Hub, client *Client, msg JSONMessage) {
 		ServerID   string `json:"serverID"`
 	}
 
+	log.Println("HUB CLIENTS 22222", hub.clients)
+
 	var body JoinGameBody
 	if err := json.Unmarshal(msg.Body, &body); err != nil {
 		log.Println("unmarshal error:", err)
 		return
 	}
 
-	hub.register <- client
-	newPlayer, err := hub.gameState.JoinGame(body.PlayerName, client, hub)
-	client.player = newPlayer
-	if err != nil {
-		log.Println("error joining game:", err)
-		return
-	}
+	client.playerName = body.PlayerName
 
-	newPlayerJSON, err := json.Marshal(newPlayer)
-	if err != nil {
-		log.Println("error marshalling game state:", err)
-	}
+	log.Println("HUB EXISTS", body.ServerID, hubMultiplexer.hubs[body.ServerID])
+	log.Println("CLIENT EXISTS", client)
 
-	sendToEveryone := Message{
-		Type: "playerJoined",
-		Body: string(newPlayerJSON),
-	}
+	hubMultiplexer.hubs[body.ServerID].register <- client
+	log.Println("REGISTERED CLIENT")
 
-	sendToPlayer := Message{
-		Type: "whoami",
-		Body: string(newPlayerJSON),
-	}
-
-	log.Println("SENDING MESSAGE TO EVERYONE", hub.clients[client])
-
-	hub.broadcast <- sendToEveryone
-	client.send <- sendToPlayer
 }
 
 func handleStartGame(hub *Hub, client *Client, msg JSONMessage) {
@@ -97,8 +81,14 @@ func handleStartGame(hub *Hub, client *Client, msg JSONMessage) {
 	if body.Leader == "leader" {
 		didStart := hub.gameState.StartGame()
 		if didStart {
-			hub.broadcast <- Message{
+			playersJSON, err := json.Marshal(hub.gameState.GetPlayers())
+			if err != nil {
+				log.Println("error marshalling players:", err)
+				return
+			}
+			hub.broadcastJSON <- JSONMessage{
 				Type: "gameStarted",
+				Body: json.RawMessage(playersJSON),
 			}
 			log.Println("GAME STARTED")
 		}
@@ -125,8 +115,9 @@ func handleSetWord(hub *Hub, client *Client, msg JSONMessage) {
 		}
 		return
 	}
-	client.send <- Message{
+	hub.broadcastJSON <- JSONMessage{
 		Type: "wordSet",
+		Body: json.RawMessage(fmt.Sprintf(`{"player": %s}`, strconv.Quote(client.player.Name))),
 	}
 }
 
@@ -164,7 +155,7 @@ func (c *Client) ReadPump(hub *Hub) {
 	defer func() {
 		log.Println("ReadPump: Sending client to unregister channel")
 		hub.unregister <- c
-		c.conn.Close()
+
 		log.Println("ReadPump: Client disconnected, Read Closed")
 	}()
 	for {
@@ -173,6 +164,7 @@ func (c *Client) ReadPump(hub *Hub) {
 			log.Println("read error:", err)
 			break // Exit the loop on error
 		}
+		log.Println("Received JSON message:", string(message))
 
 		var msg Message
 		var msgJSON JSONMessage
@@ -180,7 +172,6 @@ func (c *Client) ReadPump(hub *Hub) {
 			log.Println("unmarshal error:", err)
 			continue // Continue to the next iteration on error
 		}
-		log.Println("HUB CLIENTS 33333", hub.clients)
 		if handler, found := messageHandlers[msgJSON.Type]; found {
 			handler(hub, c, msgJSON)
 		} else {
@@ -193,7 +184,7 @@ func (c *Client) WritePump(hub *Hub) {
 	defer func() {
 		log.Println("WritePump: Sending client to unregister channel")
 		hub.unregister <- c
-		c.conn.Close()
+
 		log.Println("WritePump: Client disconnected, Write Closed")
 	}()
 	for {
@@ -205,6 +196,7 @@ func (c *Client) WritePump(hub *Hub) {
 				return
 			}
 		case msg := <-c.sendJSON:
+			log.Println("Sending message from sendJSON channel:", msg)
 			if err := c.conn.WriteJSON(msg); err != nil {
 				log.Println("write error:", err)
 				return

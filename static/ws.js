@@ -1,6 +1,8 @@
 let ws;
 let currentPlayersIDs = [];
 let currentPlayer;
+let currentPlayers = [];
+let currentPlayersMap = {}; // I sincerely apologize for this monstrosity
 
 async function joinGameServer(name, serverID) {
   try {
@@ -14,7 +16,7 @@ async function joinGameServer(name, serverID) {
     console.log("WebSocket connection established");
     var message = {
       type: "joinGame",
-      body: { name, serverID }, // Use the name here
+      body: { name, serverID },
     };
     ws.send(JSON.stringify(message));
   };
@@ -36,49 +38,49 @@ async function joinGameServer(name, serverID) {
 }
 
 var messageHandlers = {
-  navigate: function (message) {
-    console.log("Navigating to:", message.body);
-    var data = JSON.parse(message.body);
-    var htmlContent = data.html;
-    document.body.innerHTML = htmlContent;
+  gameStarted: function (message) {
+    console.log("gameStarted", message.body);
+
+    currentPlayers = message.body;
+    afterStartGame();
   },
 
-  gameStarted: function (message) {
-    afterStartGame();
+  wordSet: function (message) {
+    if (message.body.player === currentPlayer.Name) {
+      currentPlayer.Word = message.body.word;
+    }
+    indicatePlayerReady(message.body.player);
+  },
+
+  invalidWord: function (message) {
+    showInvalidWord();
   },
 
   whoami: function (message) {
     var playerInfo = JSON.parse(message.body);
-    document.getElementById("playerName").innerText =
+    document.getElementById("player-name").innerText =
       playerInfo.Name || "Unknown";
     currentPlayer = playerInfo;
   },
 
-  playerJoined: function (message) {
-    console.log("playerJoined", message);
-    var playerInfo = JSON.parse(message.body);
-    if (currentPlayersIDs.includes(playerInfo.id)) {
-      return;
-    }
-    if (playerInfo.id === currentPlayer.id) {
-      return;
-    }
-    currentPlayersIDs.push(playerInfo.id);
-    buildPlayerItem(playerInfo);
-  },
-
   currentPlayers: function (message) {
-    var currentPlayers = JSON.parse(message.body);
-    deleteCurrentPlayers();
-    currentPlayers.map((player) => {
-      if (currentPlayersIDs.includes(player.id)) {
-        return;
+    console.log("currentPlayers", message.body);
+
+    // Check if message.body is already an object
+    if (typeof message.body === "string") {
+      currentPlayers = JSON.parse(message.body);
+    } else {
+      currentPlayers = message.body;
+    }
+
+    console.log(typeof currentPlayers); // Should log 'object'
+    currentPlayers.forEach((player) => {
+      console.log("player", player);
+
+      if (!currentPlayersIDs.includes(player.id)) {
+        currentPlayersIDs.push(player.id);
       }
-      if (player.id === currentPlayer.id) {
-        return;
-      }
-      currentPlayersIDs.push(player.id);
-      buildPlayerItem(player);
+      buildPlayerLobbyView(player);
     });
   },
 

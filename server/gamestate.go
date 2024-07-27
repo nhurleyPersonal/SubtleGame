@@ -2,11 +2,14 @@ package server
 
 import (
 	"errors"
+	"fmt"
 	"log"
+	"strings"
 	"sync"
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/makifdb/spellcheck"
 )
 
 type GameState struct {
@@ -30,6 +33,7 @@ type Player struct {
 	Guesses map[string][]string
 	ID      string `json:"id"`
 	Leader  bool
+	Ready   bool
 }
 
 type PassToClientPlayer struct {
@@ -43,6 +47,7 @@ func (gs *GameState) NewPlayer(name string) Player {
 		ID:     uuid.New().String(),
 		Name:   name,
 		Leader: false,
+		Ready:  false,
 	}
 }
 
@@ -69,15 +74,19 @@ func (gs *GameState) StartGame() bool {
 func (gs *GameState) SetWord(player *Player, word string) error {
 	gs.mu.Lock()
 	defer gs.mu.Unlock()
-	if !gs.Started || gs.Round != 1 {
-		return errors.New("out of order")
-	}
 	// Check spelling of a word
-	ok := Spellcheck.SearchDirect(word)
+	sc, err := spellcheck.New()
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	ok := sc.SearchDirect(strings.ToLower(word))
 	if !ok {
 		return errors.New("noword")
 	}
 	player.Word = word
+	player.Ready = true
+	gs.Players[player.ID] = *player
 	return nil
 }
 

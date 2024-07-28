@@ -5,6 +5,7 @@ import (
 	"log"
 	"math/rand"
 	"sync"
+	"time"
 
 	"github.com/gorilla/websocket"
 )
@@ -43,7 +44,7 @@ func (h *Hub) CleanUp(c *Client) {
 		close(c.send)
 		close(c.sendJSON)
 		h.gameState.RemovePlayer(c.player)
-		c.conn.Close()
+		defer c.conn.Close()
 	}
 
 	currentPlayers, err := json.Marshal(h.gameState.GetPlayers())
@@ -63,6 +64,8 @@ func (h *Hub) CleanUp(c *Client) {
 }
 
 func (h *Hub) run() {
+	ticker := time.NewTicker(10 * time.Second)
+	defer ticker.Stop()
 	for {
 		select {
 		case client := <-h.register:
@@ -114,11 +117,12 @@ func (h *Hub) run() {
 			h.CleanUp(c)
 			h.mu.Unlock()
 
+		case <-ticker.C:
+			h.broadcastGameState()
+
 		case message := <-h.broadcast:
-			log.Println("BROADCASTING MESSAGE", message)
 			h.mu.Lock() // Acquire the lock
 			for client := range h.clients {
-				log.Println("Starting broadcast")
 				select {
 				case client.send <- message:
 				default:
@@ -139,6 +143,32 @@ func (h *Hub) run() {
 				}
 			}
 			h.mu.Unlock() // Release the lock
+
+		}
+	}
+}
+
+func (h *Hub) broadcastGameState() {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+
+	gameStateJSON, err := json.Marshal(h.gameState)
+	if err != nil {
+		log.Println("error marshalling game state:", err)
+		return
+	}
+
+	gameStateMessage := Message{
+		Type: "gameState",
+		Body: string(gameStateJSON),
+	}
+
+	for client := range h.clients {
+		select {
+		case client.send <- gameStateMessage:
+		default:
+			close(client.send)
+			delete(h.clients, client)
 		}
 	}
 }

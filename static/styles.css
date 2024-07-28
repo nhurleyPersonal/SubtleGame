@@ -154,23 +154,32 @@ body {
 /* LOBBY STYLES */
 
 .self-player-name {
-    display: inline-block;
+    display: flex;
     padding: 5px 10px;
     border-radius: 4px;
     font-weight: bold;
     color: #ffffff;
     text-align: center; /* Center text */
-    width: 40%
+    
+    width: 100px;
+    max-width: 100px;
 }
 
 .player-name {
-    display: inline-block;
+    display: flex;
     padding: 5px 10px;
     border-radius: 4px;
     font-weight: bold;
     color: #888888;
     text-align: center; /* Center text */
-    width: 40%;
+    
+    width: 100px;
+    max-width: 100px;
+}
+
+.send-button-spacer {
+    width: 66.6px;
+    height: 0; /* No height, only width */
 }
 
 .player-container-clicked .player-name {
@@ -225,7 +234,24 @@ body {
     flex-direction: row;
     justify-content: center;
     align-items: center;
-    min-width: 60%;
+    width: 100%;
+}
+
+.guess-results-container {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+}
+
+.letters-vertical-stack-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: 450px;
+    gap: 20px; /* Add 20px vertical space between items */
 }
 
 .send-word-button-container {
@@ -234,7 +260,8 @@ body {
     align-items: flex-end;
     flex-grow: 1;
     padding-right: 20px;
-    cursor:pointer
+    width: 50px;
+    cursor:pointer;
 }
 
 .send-word-button {
@@ -262,8 +289,8 @@ body {
 }
 
 .letter {
-    width: 30px;
-    height: 40px;
+    width: 60px;
+    height: 80px;
     background-color: #525252;
     margin-right: 15px;
     
@@ -274,8 +301,38 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
+    font-size: 40px;
     font-weight: bold;
   }
+
+.letter-correct {
+    background-color: #4CAF50;
+    color: #fff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 40px;
+    font-weight: bold;
+}   
+
+.letter-partially-correct {
+    background-color: #fccd49;
+    color: #fff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 40px;
+    font-weight: bold;
+}
+
+.letter-filled-self {
+    background-color: #4CAF50;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 40px;
+    font-weight: bold;
+}
 
 .player-container-clicked .letter-highlight {
     background-color: #888888;
@@ -285,10 +342,9 @@ body {
     display: flex;
     flex-direction: row; 
     align-items: center;
-    padding: 20px;
-    min-width: 50vw;
     flex-grow: 1;
-    flex-wrap: wrap;
+    padding: 20px;
+    width: 600px;
 
 }
 
@@ -297,7 +353,16 @@ body {
     flex-direction: row; 
     align-items: center;
     padding: 20px;
-    min-width: 50vw;
+    width: 600px;
+
+}
+
+.something-else-entirely {
+    display: flex;
+    flex-direction: row; 
+    align-items: center;
+    padding: 20px;
+    width: 600px;
 
 }
 

@@ -2,7 +2,6 @@ let round = 0;
 let inputWord = "";
 
 function joinGame(name, serverID) {
-  console.log(name, serverID);
   fetch("/gamelobby", {
     method: "POST",
     headers: {
@@ -32,7 +31,6 @@ function joinGame(name, serverID) {
 }
 
 function createLobby() {
-  console.log("HERE");
   fetch("/createServer", {
     method: "POST",
     headers: {
@@ -94,7 +92,7 @@ function afterStartGame() {
   const timerDisplay = document.getElementById("game-timer");
   const gameDuration = 19;
   startTimer(gameDuration, timerDisplay);
-  buildPlayerItem(currentPlayer);
+  buildSelfPlayerGameView(currentPlayer);
   currentPlayers.forEach((player) => {
     if (player.Name !== currentPlayer.Name) {
       buildPlayerItem(player);
@@ -112,6 +110,7 @@ function writeGameView(templateId) {
     child.remove();
   }
   document.body.appendChild(clon);
+  attachEventListeners();
 }
 
 function sendWord() {
@@ -128,21 +127,28 @@ function sendWord() {
 }
 
 function indicatePlayerReady(player) {
-  currentPlayers.forEach((player) => {
-    if (player.Name === player) {
-      player.Ready = true;
+  currentPlayers.forEach((playerMap) => {
+    if (playerMap.Name === player) {
+      playerMap.Ready = true;
     }
   });
   if (currentPlayer.Name === player) {
+    console.log("SETTING READY TO TRUE");
     currentPlayer.Ready = true;
   }
   let canSubmit = true;
   if (!currentPlayer.Ready) {
     canSubmit = false;
+    document
+      .querySelector(".start-game-button")
+      .classList.remove("start-game-button-ready");
   }
-  currentPlayers.forEach((player) => {
-    if (!player.Ready) {
+  currentPlayers.forEach((playerMap) => {
+    if (!playerMap.Ready) {
       canSubmit = false;
+      document
+        .querySelector(".start-game-button")
+        .classList.remove("start-game-button-ready");
     }
   });
 
@@ -175,7 +181,61 @@ function showInvalidWord() {
   checkmark.classList.remove("checkmark-ready");
 
   const invalidWord = document.getElementById("invalid-word-error");
-  console.log(invalidWord);
   invalidWord.classList.remove("invalid-word-error");
   invalidWord.classList.add("invalid-word-visible");
+}
+
+function guessWord() {
+  const lettersContainer = selectedBox.querySelector(".letters-container");
+  const letterBoxes = lettersContainer.querySelectorAll(".letter");
+  inputWord = "";
+  letterBoxes.forEach((letterBox) => {
+    inputWord += letterBox.textContent;
+  });
+  if (inputWord.length !== letterBoxes.length) {
+    return;
+  }
+
+  targetName = selectedBox.querySelector(".player-name").innerHTML;
+  targetPlayerId = currentPlayers.find(
+    (player) => player.Name === targetName
+  ).id;
+  ws.send(
+    JSON.stringify({
+      type: "guessWord",
+      body: {
+        word: inputWord,
+        selfName: currentPlayer.id,
+        targetName: targetPlayerId,
+      },
+    })
+  );
+}
+
+function writeGuessResults(completelyCorrect, partiallyCorrect) {
+  const lettersContainerVert = selectedBox.querySelector(
+    ".letters-vertical-stack-container"
+  );
+  const guessContainer = document.createElement("div");
+  guessContainer.className = "guess-results-container";
+  lettersContainerVert.appendChild(guessContainer);
+
+  for (let i = 0; i < 5; i++) {
+    var letter = document.createElement("div");
+    letter.className = "letter letter-filled";
+    letter.textContent = inputWord[i];
+    guessContainer.appendChild(letter);
+  }
+
+  completelyCorrect.forEach((indOfGuess) => {
+    Array.from(guessContainer.children)[indOfGuess].classList.add(
+      "letter-correct"
+    );
+  });
+  partiallyCorrect.forEach((indOfGuess) => {
+    Array.from(guessContainer.children)[indOfGuess].classList.add(
+      "letter-partially-correct"
+    );
+  });
+  lettersContainerVerticalStack.appendChild(guessContainer);
 }

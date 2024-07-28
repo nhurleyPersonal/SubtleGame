@@ -39,17 +39,28 @@ async function joinGameServer(name, serverID) {
 
 var messageHandlers = {
   gameStarted: function (message) {
-    console.log("gameStarted", message.body);
-
     currentPlayers = message.body;
     afterStartGame();
   },
 
   wordSet: function (message) {
-    if (message.body.player === currentPlayer.Name) {
-      currentPlayer.Word = message.body.word;
-    }
+    currentPlayer.Word = inputWord;
     indicatePlayerReady(message.body.player);
+  },
+
+  guessResults: function (message) {
+    console.log("MESSAGE", message);
+    body = JSON.parse(message.body);
+    writeGuessResults(body.completelyCorrect, body.partiallyCorrect);
+  },
+
+  correctWord: function (message) {
+    console.log("MESSAGE", message);
+    let completelyCorrect = [];
+    for (let i = 0; i < inputWord.length; i++) {
+      completelyCorrect.push(i);
+    }
+    writeGuessResults(completelyCorrect, []);
   },
 
   invalidWord: function (message) {
@@ -64,21 +75,18 @@ var messageHandlers = {
   },
 
   currentPlayers: function (message) {
-    console.log("currentPlayers", message.body);
-
     // Check if message.body is already an object
     if (typeof message.body === "string") {
       currentPlayers = JSON.parse(message.body);
     } else {
       currentPlayers = message.body;
     }
-
-    console.log(typeof currentPlayers); // Should log 'object'
+    deleteCurrentPlayersViews();
     currentPlayers.forEach((player) => {
-      console.log("player", player);
-
-      if (!currentPlayersIDs.includes(player.id)) {
-        currentPlayersIDs.push(player.id);
+      if (!player.Ready) {
+        document
+          .querySelector(".start-game-button")
+          .classList.remove("start-game-button-ready");
       }
       buildPlayerLobbyView(player);
     });

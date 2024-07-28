@@ -11,11 +11,6 @@ function handleKeydown(event) {
   const lettersContainer = selectedBox.querySelector(".letters-container");
   const letterBoxes = lettersContainer.querySelectorAll(".letter");
 
-  //   if (key === "Tab") {
-  //     currentBoxIndex = (currentBoxIndex + 1) % letterBoxes.length;
-  //     selectedBox = playerNameDivs[selectedBoxIndex];
-  //     playerRowClicked(selectedBox, selectedBoxIndex);
-  //   }
   // Only process single character keys
   if (key.length === 1 && /[a-zA-Z]/.test(key)) {
     // Fill the current box with the typed letter
@@ -23,7 +18,6 @@ function handleKeydown(event) {
     letterBoxes[currentBoxIndex].classList.add("letter-filled");
 
     // Remove highlight from the current box
-    letterBoxes[currentBoxIndex].classList.remove("letter-highlight");
 
     if (currentBoxIndex === letterBoxes.length - 1) {
       sendButton = document.querySelector(".send-word-button");
@@ -31,6 +25,7 @@ function handleKeydown(event) {
     }
 
     if (currentBoxIndex < letterBoxes.length - 1) {
+      letterBoxes[currentBoxIndex].classList.remove("letter-highlight");
       currentBoxIndex = currentBoxIndex + 1;
     }
 
@@ -79,7 +74,9 @@ function selectPlayer() {
 }
 
 function playerRowClicked(row, index) {
-  console.log("playerRowClicked");
+  if (row.querySelector(".player-name").innerText === currentPlayer.Name) {
+    return;
+  }
   selectedBox = row;
   selectedBoxIndex = index;
   currentBoxIndex = 0;
@@ -103,6 +100,44 @@ function deleteCurrentPlayersViews() {
   });
 }
 
+function buildSelfPlayerGameView(playerInfo) {
+  // Check if the player is the current player
+
+  var playerList = document.getElementById("player-list");
+
+  // Create a new player container
+  var playerContainer = document.createElement("div");
+  playerContainer.className = "player-container";
+
+  // Create player name element
+  var playerName = document.createElement("h2");
+  playerName.className = "self-player-name";
+  playerName.innerText = playerInfo.Name || "Unknown";
+  playerContainer.appendChild(playerName);
+
+  // Create letters container
+  var lettersContainer = document.createElement("div");
+  lettersContainer.className = "letters-container";
+  for (let i = 0; i < 5; i++) {
+    var letter = document.createElement("div");
+    letter.className = "letter letter-filled-self";
+    letter.innerText = playerInfo.Word[i];
+    lettersContainer.appendChild(letter);
+  }
+  playerContainer.appendChild(lettersContainer);
+  var spacer = document.createElement("div");
+  spacer.className = "send-button-spacer";
+  playerContainer.appendChild(spacer);
+  // Append the new player container to the player list
+  playerList.appendChild(playerContainer);
+
+  // Attach event listener to the new player container
+  playerContainer.addEventListener("click", function (event) {
+    event.stopPropagation(); // Prevent the document click event from firing
+    playerRowClicked(playerContainer);
+  });
+}
+
 function buildPlayerItem(playerInfo) {
   // Check if the player is the current player
 
@@ -119,6 +154,9 @@ function buildPlayerItem(playerInfo) {
   playerContainer.appendChild(playerName);
 
   // Create letters container
+  let lettersContainerVerticalStack = document.createElement("div");
+  lettersContainerVerticalStack.className = "letters-vertical-stack-container";
+
   var lettersContainer = document.createElement("div");
   lettersContainer.className = "letters-container";
   for (let i = 0; i < 5; i++) {
@@ -126,7 +164,21 @@ function buildPlayerItem(playerInfo) {
     letter.className = "letter";
     lettersContainer.appendChild(letter);
   }
-  playerContainer.appendChild(lettersContainer);
+  lettersContainerVerticalStack.appendChild(lettersContainer);
+  playerContainer.appendChild(lettersContainerVerticalStack);
+
+  // Send button
+  sendButtonContainer = document.createElement("div");
+  sendButtonContainer.className = "send-word-button-container";
+  playerContainer.appendChild(sendButtonContainer);
+  sendButtonSpan = document.createElement("span");
+  sendButtonSpan.className = "material-symbols-outlined send-word-button";
+  sendButtonSpan.innerText = "Send";
+  sendButtonSpan.addEventListener("click", function () {
+    console.log("Sending word");
+    guessWord();
+  });
+  sendButtonContainer.appendChild(sendButtonSpan);
 
   // Append the new player container to the player list
   playerList.appendChild(playerContainer);
@@ -139,16 +191,12 @@ function buildPlayerItem(playerInfo) {
 }
 
 function buildPlayerLobbyView(playerInfo) {
-  deleteCurrentPlayersViews();
-  console.log("buildPlayerLobbyView");
-  console.log("playerInfo", playerInfo);
   // Check if the player is the current player
   if (playerInfo.id === currentPlayer.id) {
     return;
   }
 
   var playerList = document.getElementById("player-list");
-
   // Create a new player container
   var playerContainer = document.createElement("div");
   playerContainer.className = "player-container";

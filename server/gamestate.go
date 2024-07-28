@@ -28,12 +28,14 @@ func NewGameState() GameState {
 }
 
 type Player struct {
-	Name    string
-	Word    string
-	Guesses map[string][]string
-	ID      string `json:"id"`
-	Leader  bool
-	Ready   bool
+	Name        string
+	Word        string
+	Guesses     map[string][]string
+	HasFinished map[string]bool
+	Score       int
+	ID          string `json:"id"`
+	Leader      bool
+	Ready       bool
 }
 
 type PassToClientPlayer struct {
@@ -44,10 +46,12 @@ type PassToClientPlayer struct {
 
 func (gs *GameState) NewPlayer(name string) Player {
 	return Player{
-		ID:     uuid.New().String(),
-		Name:   name,
-		Leader: false,
-		Ready:  false,
+		ID:          uuid.New().String(),
+		Name:        name,
+		Leader:      false,
+		Ready:       false,
+		Guesses:     make(map[string][]string), // Initialize Guesses map
+		HasFinished: make(map[string]bool),     // Initialize HasFinished map
 	}
 }
 
@@ -157,12 +161,75 @@ func (gs *GameState) RemovePlayer(player Player) bool {
 	return true
 }
 
-// func GuessWord(hub *Hub, playerOne *Player, playerTwo *Player, word string) {
-// 	hub.mu.Lock()
-// 	defer hub.mu.Unlock()
-// 	if _, ok := playerOne.Guesses[playerTwo.ID]; !ok {
-// 		playerOne.Guesses[playerTwo.ID] = []string{}
-// 	}
-// 	playerOne.Guesses[playerTwo.ID] = append(playerOne.Guesses[playerTwo.ID], word)
+func replaceAtIndex(in string, r rune, i int) string {
+	out := []rune(in)
+	out[i] = r
+	return string(out)
+}
 
-// }
+func (gs *GameState) GuessWord(word string, selfPlayerID string, targetPlayerID string) ([]int, []int, bool) {
+	gs.mu.Lock()
+	defer gs.mu.Unlock()
+
+	selfPlayer, ok := gs.Players[selfPlayerID]
+	if !ok {
+		return nil, nil, false
+	}
+
+	targetPlayer, ok := gs.Players[targetPlayerID]
+	if !ok {
+		return nil, nil, false
+	}
+
+	sc, err := spellcheck.New()
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	ok = sc.SearchDirect(strings.ToLower(word))
+	if !ok {
+		return nil, nil, false
+	}
+
+	if _, ok := selfPlayer.Guesses[targetPlayer.ID]; !ok {
+		selfPlayer.Guesses[targetPlayer.ID] = []string{}
+	}
+	selfPlayer.Guesses[targetPlayer.ID] = append(selfPlayer.Guesses[targetPlayer.ID], word)
+	targetWord := targetPlayer.Word
+	var rebuiltTarget = targetWord
+	var rebuiltGuess = word
+	var completelyCorrect []int
+	var partiallyCorrect []int
+
+	log.Println("GUESS !!!!", word)
+
+	log.Println("TARGET WORD !!!!", targetWord)
+	for i := 0; i < len(word); i++ {
+		if word[i] == targetWord[i] {
+			log.Println(word, targetWord, i)
+			completelyCorrect = append(completelyCorrect, i)
+			rebuiltTarget = replaceAtIndex(rebuiltTarget, '*', i)
+			rebuiltGuess = replaceAtIndex(rebuiltGuess, '*', i)
+		}
+	}
+
+	for i, guess := range rebuiltGuess {
+		for j, target := range rebuiltTarget {
+			if guess == target && guess != rune('*') && target != rune('*') {
+				partiallyCorrect = append(partiallyCorrect, i)
+				rebuiltTarget = replaceAtIndex(rebuiltTarget, '*', j)
+				rebuiltGuess = replaceAtIndex(rebuiltGuess, '*', i)
+			}
+		}
+	}
+
+	if len(completelyCorrect) == len(targetWord) {
+		selfPlayer.Score += 1
+		selfPlayer.HasFinished[targetPlayerID] = true
+	}
+
+	gs.Players[selfPlayerID] = selfPlayer
+	gs.Players[targetPlayerID] = targetPlayer
+
+	return completelyCorrect, partiallyCorrect, true
+}

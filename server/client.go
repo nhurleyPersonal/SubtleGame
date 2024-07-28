@@ -42,6 +42,9 @@ var messageHandlers = map[string]func(*Hub, *Client, JSONMessage){
 	"setWord": func(hub *Hub, client *Client, msg JSONMessage) {
 		handleSetWord(hub, client, msg)
 	},
+	"guessWord": func(hub *Hub, client *Client, msg JSONMessage) {
+		handleGuessWord(hub, client, msg)
+	},
 }
 
 func handleJoinGame(hub *Hub, client *Client, msg JSONMessage) {
@@ -60,16 +63,11 @@ func handleJoinGame(hub *Hub, client *Client, msg JSONMessage) {
 
 	client.playerName = body.PlayerName
 
-	log.Println("HUB EXISTS", body.ServerID, hubMultiplexer.hubs[body.ServerID])
-	log.Println("CLIENT EXISTS", client)
-
 	hubMultiplexer.hubs[body.ServerID].register <- client
-	log.Println("REGISTERED CLIENT")
 
 }
 
 func handleStartGame(hub *Hub, client *Client, msg JSONMessage) {
-	log.Println("HUB CLIENTS 11111", hub.clients)
 	body := struct {
 		Leader string `json:"leader"`
 	}{}
@@ -119,6 +117,53 @@ func handleSetWord(hub *Hub, client *Client, msg JSONMessage) {
 		Type: "wordSet",
 		Body: json.RawMessage(fmt.Sprintf(`{"player": %s}`, strconv.Quote(client.player.Name))),
 	}
+}
+
+func handleGuessWord(hub *Hub, client *Client, msg JSONMessage) {
+	body := struct {
+		Word     string `json:"word"`
+		SelfID   string `json:"selfName"`
+		TargetID string `json:"targetName"`
+	}{}
+	if err := json.Unmarshal(msg.Body, &body); err != nil {
+		log.Println("unmarshal error:", err)
+		return
+	}
+
+	completelyCorrect, partiallyCorrect, ok := hub.gameState.GuessWord(body.Word, body.SelfID, body.TargetID)
+	if !ok {
+		client.send <- Message{
+			Type: "invalidGord",
+		}
+		return
+	}
+
+	if body.Word == hub.gameState.Players[body.TargetID].Word {
+		client.send <- Message{
+			Type: "correctWord",
+		}
+		hub.broadcastJSON <- JSONMessage{
+			Type: "correctWord",
+			Body: json.RawMessage(fmt.Sprintf(`{"player": %s}`, strconv.Quote(body.SelfID))),
+		}
+		return
+	}
+
+	log.Println("GUESS RESULTS", completelyCorrect, partiallyCorrect)
+	client.send <- Message{
+		Type: "guessResults",
+		Body: fmt.Sprintf(`{"completelyCorrect": %s, "partiallyCorrect": %s}`,
+			marshalList(completelyCorrect), marshalList(partiallyCorrect)),
+	}
+}
+
+func marshalList(list interface{}) string {
+	jsonData, err := json.Marshal(list)
+	if err != nil {
+		log.Println("marshal error:", err)
+		return "[]"
+	}
+	return string(jsonData)
 }
 
 func handleIndexPage(client *Client, msg Message) {
@@ -190,13 +235,11 @@ func (c *Client) WritePump(hub *Hub) {
 	for {
 		select {
 		case msg := <-c.send:
-			log.Println("Sending message from send channel:", msg) // Debugging log
 			if err := c.conn.WriteJSON(msg); err != nil {
 				log.Println("write error:", err)
 				return
 			}
 		case msg := <-c.sendJSON:
-			log.Println("Sending message from sendJSON channel:", msg)
 			if err := c.conn.WriteJSON(msg); err != nil {
 				log.Println("write error:", err)
 				return

@@ -5,8 +5,14 @@ let playerNameDivs;
 
 function showKeyboard() {
   const hiddenInput = document.getElementById("hiddenInput");
-  hiddenInput.focus();
-  console.log("HIDDEN INPUT", hiddenInput);
+  hiddenInput.style.position = "absolute";
+  hiddenInput.style.top = "-1000px";
+  hiddenInput.style.opacity = "0";
+  hiddenInput.type = "text";
+  setTimeout(() => {
+    hiddenInput.focus();
+    console.log("HIDDEN INPUT", hiddenInput);
+  }, 100); // Adding a small delay
 }
 
 // SELECTING AND FILLING BOX LOGIC

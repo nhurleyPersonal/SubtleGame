@@ -6,10 +6,7 @@ let playerNameDivs;
 function showKeyboard() {
   const hiddenInput = document.getElementById("hiddenInput");
   hiddenInput.focus();
-  hiddenInput.addEventListener("blur", () => {
-    // Optionally, refocus if needed
-    setTimeout(() => hiddenInput.focus(), 0);
-  });
+  console.log("HIDDEN INPUT", hiddenInput);
 }
 
 // SELECTING AND FILLING BOX LOGIC

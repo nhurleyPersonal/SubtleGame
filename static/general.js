@@ -3,16 +3,30 @@ let selectedBoxIndex;
 let currentBoxIndex = 0;
 let playerNameDivs;
 
-function showKeyboard() {
-  const hiddenInput = document.getElementById("hiddenInput");
-  hiddenInput.style.position = "absolute";
-  hiddenInput.style.top = "-1000px";
-  hiddenInput.style.opacity = "0";
-  hiddenInput.type = "text";
-  setTimeout(() => {
-    hiddenInput.focus();
-    console.log("HIDDEN INPUT", hiddenInput);
-  }, 100); // Adding a small delay
+function showKeyboard(el, timeout) {
+  if (!timeout) {
+    timeout = 100;
+  }
+  if (el) {
+    // Align temp input element approx. to be where the input element is
+    var __tempEl__ = document.createElement("input");
+    __tempEl__.style.position = "absolute";
+    __tempEl__.style.top = el.offsetTop + 7 + "px";
+    __tempEl__.style.left = el.offsetLeft + "px";
+    __tempEl__.style.height = 0;
+    __tempEl__.style.opacity = 0;
+    // Put this temp element as a child of the page <body> and focus on it
+    document.body.appendChild(__tempEl__);
+    __tempEl__.focus();
+
+    // The keyboard is open. Now do a delayed focus on the target element
+    setTimeout(function () {
+      el.focus();
+      el.click();
+      // Remove the temp element
+      document.body.removeChild(__tempEl__);
+    }, timeout);
+  }
 }
 
 // SELECTING AND FILLING BOX LOGIC
@@ -78,7 +92,7 @@ function selectPlayer() {
     player.classList.add("player-container-clicked");
   });
   selectedBox = selfPlayer[0];
-  showKeyboard();
+  showKeyboard(selectedBox);
   selectedBoxIndex = 0;
   currentBoxIndex = 0;
   const lettersContainer = selectedBox.querySelector(".letters-container");
@@ -91,7 +105,7 @@ function playerRowClicked(row, index) {
     return;
   }
   selectedBox = row;
-  showKeyboard();
+  showKeyboard(selectedBox);
   selectedBoxIndex = index;
   currentBoxIndex = 0;
   const playerNameDivs = document.querySelectorAll(".player-container");

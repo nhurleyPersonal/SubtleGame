@@ -161,8 +161,8 @@ body {
     color: #ffffff;
     text-align: center; /* Center text */
     
-    width: 100px;
-    max-width: 100px;
+    width: 120px;
+    max-width: 120px;
 }
 
 .player-name {
@@ -173,8 +173,8 @@ body {
     color: #888888;
     text-align: center; /* Center text */
     
-    width: 100px;
-    max-width: 100px;
+    width: 120px;
+    max-width: 120px;
 }
 
 .send-button-spacer {

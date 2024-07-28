@@ -3,6 +3,15 @@ let selectedBoxIndex;
 let currentBoxIndex = 0;
 let playerNameDivs;
 
+function showKeyboard() {
+  const hiddenInput = document.getElementById("hiddenInput");
+  hiddenInput.focus();
+  hiddenInput.addEventListener("blur", () => {
+    // Optionally, refocus if needed
+    setTimeout(() => hiddenInput.focus(), 0);
+  });
+}
+
 // SELECTING AND FILLING BOX LOGIC
 
 // Define the keydown event handler
@@ -66,6 +75,7 @@ function selectPlayer() {
     player.classList.add("player-container-clicked");
   });
   selectedBox = selfPlayer[0];
+  showKeyboard();
   selectedBoxIndex = 0;
   currentBoxIndex = 0;
   const lettersContainer = selectedBox.querySelector(".letters-container");
@@ -78,6 +88,7 @@ function playerRowClicked(row, index) {
     return;
   }
   selectedBox = row;
+  showKeyboard();
   selectedBoxIndex = index;
   currentBoxIndex = 0;
   const playerNameDivs = document.querySelectorAll(".player-container");

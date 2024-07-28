@@ -3,6 +3,7 @@ package server
 import (
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/gorilla/websocket"
 	"github.com/makifdb/spellcheck"
@@ -30,6 +31,9 @@ var Spellcheck, _ = spellcheck.New()
 // Start the server and the hub
 func Start() {
 	Router()
-	log.Println("Server started at :8080")
-	http.ListenAndServe(":8080", nil)
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080" // Default port if not specified
+	}
+	log.Fatal(http.ListenAndServe(":"+port, nil))
 }

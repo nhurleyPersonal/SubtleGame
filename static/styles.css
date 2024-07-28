@@ -94,6 +94,13 @@ body {
     min-height: 10vh;
 }
 
+@media (max-width: 600px) {
+    .title-button-container {
+        flex-direction: column;
+        align-items: center;
+    }
+}
+
 .server-create-button {
     font-size: 24px; 
     margin: 0px 10px; 

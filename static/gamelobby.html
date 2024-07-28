@@ -14,25 +14,27 @@
     </head>
     <body>
         <template id="lobbyview">
-            <input type="text" id="hiddenInput">
             <div class="lobby-container">
-                <div id="player-container" class="self-player-container">
-                    <div class="player-name-checkmark-box">
-                        <span id="invalid-word-error" class="invalid-word-error">&#10008;</span>
-                        <span class="checkmark">&#10004;</span> <h2 id="player-name" class="player-name"></h2>
-                    </div>
-                    <div class="letters-container">
-                        <div class="letter"></div>
-                        <div class="letter"></div>
-                        <div class="letter"></div>
-                        <div class="letter"></div>
-                        <div class="letter"></div>
-                        <div class="send-word-button-container">
-                            <span onclick="sendWord()" class="material-symbols-outlined send-word-button">
-                                send
-                            </span>
+                <div class="player-container-input-container">
+                    <div id="player-container" class="self-player-container">
+                        <div class="player-name-checkmark-box">
+                            <span id="invalid-word-error" class="invalid-word-error">&#10008;</span>
+                            <span class="checkmark">&#10004;</span> <h2 id="player-name" class="player-name"></h2>
+                        </div>
+                        <div class="letters-container">
+                            <div class="letter"></div>
+                            <div class="letter"></div>
+                            <div class="letter"></div>
+                            <div class="letter"></div>
+                            <div class="letter"></div>
+                            <div class="send-word-button-container">
+                                <span onclick="sendWord()" class="material-symbols-outlined send-word-button">
+                                    send
+                                </span>
+                            </div>
                         </div>
                     </div>
+                    <input type="text" class="player-container-hidden-input">
                 </div>
                 <div id="player-list" class="player-list"> </div>
                 <div class="align-trailing">

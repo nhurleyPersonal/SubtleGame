@@ -4,12 +4,12 @@ let currentBoxIndex = 0;
 let playerNameDivs;
 
 function showKeyboard() {
-  const hiddenInput = document.getElementById("hiddenInput");
-  hiddenInput.focus();
-  hiddenInput.addEventListener("blur", () => {
-    // Optionally, refocus if needed
-    setTimeout(() => hiddenInput.focus(), 0);
-  });
+  //   const hiddenInput = document.getElementById("hiddenInput");
+  //   hiddenInput.focus();
+  //   hiddenInput.addEventListener("blur", () => {
+  //     // Optionally, refocus if needed
+  //     setTimeout(() => hiddenInput.focus(), 0);
+  //   });
 }
 
 // SELECTING AND FILLING BOX LOGIC

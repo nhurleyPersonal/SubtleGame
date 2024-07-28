@@ -6,7 +6,8 @@ let currentPlayersMap = {}; // I sincerely apologize for this monstrosity
 
 async function joinGameServer(name, serverID) {
   try {
-    const wsUrl = `ws://${window.location.host}/ws?serverID=${serverID}`;
+    let protocol = window.location.protocol === "https:" ? "wss://" : "ws://";
+    const wsUrl = `${protocol}${window.location.host}/ws?serverID=${serverID}`;
     ws = new WebSocket(wsUrl);
   } catch (error) {
     console.error("WebSocket creation error:", error);

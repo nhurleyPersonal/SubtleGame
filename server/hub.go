@@ -18,10 +18,11 @@ type Hub struct {
 	unregister     chan *Client
 	gameState      GameState
 	connToPlayerId map[*websocket.Conn]string
+	serverCode     string
 	mu             sync.Mutex
 }
 
-func NewHub() *Hub {
+func NewHub(lobbyID string) *Hub {
 	return &Hub{
 		clients:        make(map[*Client]bool),
 		broadcast:      make(chan Message),
@@ -29,6 +30,7 @@ func NewHub() *Hub {
 		register:       make(chan *Client),
 		unregister:     make(chan *Client),
 		gameState:      GameState{},
+		serverCode:     lobbyID,
 		connToPlayerId: make(map[*websocket.Conn]string),
 	}
 }
@@ -61,13 +63,32 @@ func (h *Hub) CleanUp(c *Client) {
 	h.broadcast <- currentPlayersMessage
 }
 
+func (hm *HubMultiplexer) shutdownHub(hubCode string) {
+	hubToBeCleaned := hm.hubs[hubCode]
+	hm.mu.Lock()
+	defer hm.mu.Unlock()
+	hubToBeCleaned.mu.Lock()
+	defer hubToBeCleaned.mu.Unlock()
+	if len(hubToBeCleaned.clients) != 0 {
+		return
+	}
+	for client := range hubToBeCleaned.clients {
+		client.conn.Close()
+		delete(hubToBeCleaned.clients, client)
+	}
+	log.Println("Shut down hub", hubCode)
+}
+
 func (h *Hub) run() {
 	ticker := time.NewTicker(10 * time.Second)
+	shutdownTimer := time.NewTicker(20 * time.Second)
 	defer ticker.Stop()
+	defer shutdownTimer.Stop()
 	for {
 		select {
 		case client := <-h.register:
 			h.mu.Lock() // Acquire the lock
+			shutdownTimer.Stop()
 			h.clients[client] = true
 
 			newPlayer, err := h.gameState.JoinGame(client.playerName, client, h)
@@ -105,11 +126,16 @@ func (h *Hub) run() {
 
 		case c := <-h.unregister:
 			h.mu.Lock()
+			shutdownTimer.Reset(20 * time.Second)
 			h.CleanUp(c)
 			h.mu.Unlock()
 
 		case <-ticker.C:
 			h.broadcastGameState()
+
+		case <-shutdownTimer.C:
+			hubMultiplexer.shutdownHub(h.serverCode)
+			return
 
 		case message := <-h.broadcast:
 			h.mu.Lock()
@@ -179,7 +205,7 @@ func (hm *HubMultiplexer) CreateHub() (*Hub, string) {
 	hm.mu.Lock()
 	defer hm.mu.Unlock()
 	lobbyID := generateRandomString(6)
-	hub := NewHub()
+	hub := NewHub(lobbyID)
 	hm.hubs[lobbyID] = hub
 	go hub.run()
 	return hub, lobbyID

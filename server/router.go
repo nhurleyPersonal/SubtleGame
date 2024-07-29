@@ -11,9 +11,10 @@ import (
 )
 
 func connectionHandler(w http.ResponseWriter, r *http.Request) {
-	log.Println(r.URL)
+	log.Println("HERE", r.URL)
 	serverID := r.URL.Query().Get("serverID")
 	playerID := r.URL.Query().Get("playerID")
+	log.Println(serverID, playerID)
 	hub, ok := hubMultiplexer.hubs[serverID]
 	if !ok {
 		log.Println("Hub not found")

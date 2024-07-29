@@ -43,7 +43,7 @@ async function joinGameServer(name, serverID, selfPlayerID) {
     if (reconnectAttempts < maxReconnectAttempts) {
       setTimeout(() => {
         reconnectAttempts++;
-        joinGameServer(name, serverID);
+        joinGameServer(name, serverID, currentPlayer.id);
       }, reconnectInterval);
     } else {
       console.log("Max reconnection attempts reached");

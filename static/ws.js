@@ -21,7 +21,7 @@ async function joinGameServer(name, serverID) {
     };
     ws.send(JSON.stringify(message));
     var playerName = document.createElement("h2");
-    playerName.innerText = playerInfo.message || "Unknown";
+    playerName.innerText = message || "Unknown";
     document.body.appendChild(playerName);
   };
 
@@ -31,7 +31,7 @@ async function joinGameServer(name, serverID) {
     (messageHandlers[message.type] || messageHandlers.default)(message);
     // Create player name element
     var playerName = document.createElement("h2");
-    playerName.innerText = playerInfo.message.data || "Unknown";
+    playerName.innerText = message.data || "Unknown";
     document.body.appendChild(playerName);
   };
 

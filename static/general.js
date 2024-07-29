@@ -147,6 +147,12 @@ function buildPlayerItem(playerInfo) {
   var playerContainer = document.createElement("div");
   playerContainer.className = "player-container";
 
+  var hiddenInput = document.createElement("input");
+  hiddenInput.className = "player-hidden-input";
+  hiddenInput.type = "text";
+  hiddenInput.id = "player-hidden-input";
+  playerContainer.appendChild(hiddenInput);
+
   // Create player name element
   var playerName = document.createElement("h2");
   playerName.className = "player-name";

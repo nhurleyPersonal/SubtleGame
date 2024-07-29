@@ -11,7 +11,7 @@ import (
 )
 
 func connectionHandler(w http.ResponseWriter, r *http.Request) {
-	log.Println(r.URL.Query())
+	log.Println(r.URL)
 	serverID := r.URL.Query().Get("serverID")
 	hub, ok := hubMultiplexer.hubs[serverID]
 	if !ok {

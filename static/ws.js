@@ -20,19 +20,12 @@ async function joinGameServer(name, serverID) {
       body: { name, serverID },
     };
     ws.send(JSON.stringify(message));
-    var playerName = document.createElement("h2");
-    playerName.innerText = message || "Unknown";
-    document.body.appendChild(playerName);
   };
 
   ws.onmessage = function (event) {
     console.log("Message received from server:", event.data);
     var message = JSON.parse(event.data);
     (messageHandlers[message.type] || messageHandlers.default)(message);
-    // Create player name element
-    var playerName = document.createElement("h2");
-    playerName.innerText = message.data || "Unknown";
-    document.body.appendChild(playerName);
   };
 
   ws.onerror = function (error) {
@@ -42,9 +35,6 @@ async function joinGameServer(name, serverID) {
   ws.onclose = function () {
     console.log("WebSocket connection closed");
     sessionStorage.removeItem("ws");
-    var playerName = document.createElement("h2");
-    playerName.innerText = "Reconnecting..." || "Unknown";
-    document.body.appendChild(playerName);
     if (reconnectAttempts < maxReconnectAttempts) {
       setTimeout(() => {
         reconnectAttempts++;

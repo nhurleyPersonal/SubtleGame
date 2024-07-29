@@ -35,8 +35,20 @@ async function joinGameServer(name, serverID) {
   ws.onclose = function () {
     console.log("WebSocket connection closed");
     sessionStorage.removeItem("ws");
+    if (reconnectAttempts < maxReconnectAttempts) {
+      setTimeout(() => {
+        reconnectAttempts++;
+        joinGameServer(name, serverID);
+      }, reconnectInterval);
+    } else {
+      console.log("Max reconnection attempts reached");
+    }
   };
 }
+
+let reconnectInterval = 5000; // 5 seconds
+let reconnectAttempts = 0;
+let maxReconnectAttempts = 12; // 1 minute
 
 var messageHandlers = {
   gameStarted: function (message) {

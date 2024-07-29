@@ -20,7 +20,7 @@ function handleKeydown(event) {
     // Remove highlight from the current box
 
     if (currentBoxIndex === letterBoxes.length - 1) {
-      sendButton = document.querySelector(".send-word-button");
+      sendButton = document.querySelector(".send-word-button-container");
       sendButton.classList.add("send-word-button-ready");
     }
 
@@ -39,7 +39,7 @@ function handleKeydown(event) {
   }
 
   if (key === "Backspace") {
-    sendButton = document.querySelector(".send-word-button");
+    sendButton = document.querySelector(".send-word-button-container");
     sendButton.classList.remove("send-word-button-ready");
     letterBoxes[currentBoxIndex].classList.remove("letter-filled");
     letterBoxes[currentBoxIndex].classList.remove("letter-highlight");
@@ -159,10 +159,6 @@ function buildPlayerItem(playerInfo) {
   playerName.innerText = playerInfo.Name || "Unknown";
   playerContainer.appendChild(playerName);
 
-  // Create letters container
-  let lettersContainerVerticalStack = document.createElement("div");
-  lettersContainerVerticalStack.className = "letters-vertical-stack-container";
-
   var lettersContainer = document.createElement("div");
   lettersContainer.className = "letters-container";
   for (let i = 0; i < 5; i++) {
@@ -170,21 +166,12 @@ function buildPlayerItem(playerInfo) {
     letter.className = "letter";
     lettersContainer.appendChild(letter);
   }
-  lettersContainerVerticalStack.appendChild(lettersContainer);
-  playerContainer.appendChild(lettersContainerVerticalStack);
+  playerContainer.appendChild(lettersContainer);
 
-  // Send button
-  sendButtonContainer = document.createElement("div");
-  sendButtonContainer.className = "send-word-button-container";
-  playerContainer.appendChild(sendButtonContainer);
-  sendButtonSpan = document.createElement("span");
-  sendButtonSpan.className = "material-symbols-outlined send-word-button";
-  sendButtonSpan.innerText = "Send";
-  sendButtonSpan.addEventListener("click", function () {
-    console.log("Sending word");
-    guessWord();
-  });
-  sendButtonContainer.appendChild(sendButtonSpan);
+  // Create letters container
+  let lettersContainerVerticalStack = document.createElement("div");
+  lettersContainerVerticalStack.className = "letters-vertical-stack-container";
+  playerContainer.appendChild(lettersContainerVerticalStack);
 
   // Append the new player container to the player list
   playerList.appendChild(playerContainer);

@@ -98,7 +98,7 @@ func (gs *GameState) JoinGame(name string, c *Client, hub *Hub) (Player, error) 
 	gs.mu.Lock()
 	defer gs.mu.Unlock()
 
-	if len(gs.Players) >= 3 {
+	if len(gs.Players) >= 6 {
 		failedToJoinMessage := Message{
 			Type: "lobbyFull",
 		}

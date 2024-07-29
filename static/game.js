@@ -39,7 +39,26 @@ function createLobby() {
   })
     .then((response) => response.text())
     .then((html) => {
-      document.getElementById("createGameButton").outerHTML = html;
+      const createButton = document.getElementById("createGameButton");
+      createButton.innerHTML = html;
+      createButton.className = "server-create-button-clicked";
+
+      const copyIcon = document.createElement("span");
+      copyIcon.className = "material-symbols-outlined";
+      copyIcon.innerText = "content_copy";
+      copyIcon.style.cursor = "pointer";
+      createButton.onclick = function () {
+        navigator.clipboard
+          .writeText(html.slice(html.indexOf(">") + 1, html.indexOf(">") + 7))
+          .then(() => {
+            console.log("HTML copied to clipboard");
+          })
+          .catch((error) => {
+            console.error("Error copying to clipboard:", error);
+          });
+      };
+
+      createButton.appendChild(copyIcon);
     })
     .catch((error) => {
       console.error("Error:", error);
@@ -191,6 +210,8 @@ function guessWord() {
   inputWord = "";
   letterBoxes.forEach((letterBox) => {
     inputWord += letterBox.textContent;
+    letterBox.textContent = "";
+    letterBox.classList.remove("letter-highlight");
   });
   if (inputWord.length !== letterBoxes.length) {
     return;
@@ -213,9 +234,25 @@ function guessWord() {
 }
 
 function writeGuessResults(completelyCorrect, partiallyCorrect) {
+  const lettersContainer = selectedBox.querySelector(".letters-container");
+  const letterBoxes = lettersContainer.querySelectorAll(".letter");
   const lettersContainerVert = selectedBox.querySelector(
     ".letters-vertical-stack-container"
   );
+  if (completelyCorrect && completelyCorrect.length == letterBoxes.length) {
+    for (let i = 0; i < letterBoxes.length; i++) {
+      letterBoxes[i].innerText = inputWord.charAt(i);
+      letterBoxes[i].classList.add("letter-filled");
+      letterBoxes[i].classList.add("letter-correct");
+      letterBoxes[i].classList.remove("letter-highlight");
+    }
+    while (lettersContainerVert.firstChild) {
+      lettersContainerVert.removeChild(lettersContainerVert.firstChild);
+    }
+    selectedBox = null;
+    return;
+  }
+
   const guessContainer = document.createElement("div");
   guessContainer.className = "guess-results-container";
   lettersContainerVert.appendChild(guessContainer);
@@ -227,15 +264,21 @@ function writeGuessResults(completelyCorrect, partiallyCorrect) {
     guessContainer.appendChild(letter);
   }
 
-  completelyCorrect.forEach((indOfGuess) => {
-    Array.from(guessContainer.children)[indOfGuess].classList.add(
-      "letter-correct"
-    );
-  });
-  partiallyCorrect.forEach((indOfGuess) => {
-    Array.from(guessContainer.children)[indOfGuess].classList.add(
-      "letter-partially-correct"
-    );
-  });
-  lettersContainerVerticalStack.appendChild(guessContainer);
+  if (completelyCorrect && completelyCorrect.length > 0) {
+    completelyCorrect.forEach((indOfGuess) => {
+      Array.from(guessContainer.children)[indOfGuess].classList.add(
+        "letter-correct"
+      );
+    });
+  }
+
+  if (partiallyCorrect && partiallyCorrect.length > 0) {
+    partiallyCorrect.forEach((indOfGuess) => {
+      Array.from(guessContainer.children)[indOfGuess].classList.add(
+        "letter-partially-correct"
+      );
+    });
+  }
+
+  lettersContainerVert.appendChild(guessContainer);
 }

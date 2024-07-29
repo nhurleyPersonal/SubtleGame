@@ -26,12 +26,10 @@
                         <div class="letter"></div>
                         <div class="letter"></div>
                         <div class="letter"></div>
-                        <div class="letter"></div>
-                        <div class="send-word-button-container">
-                            <span onclick="sendWord()" class="material-symbols-outlined send-word-button">
-                                send
-                            </span>
-                        </div>
+                        <div class="letter"></div>                               
+                    </div>
+                    <div class="center-button">
+                        <button id="send-word-button" class="send-word-button-container" onclick="sendWord()">Set Word </button> 
                     </div>
                 </div>
                 <div id="player-list" class="player-list"> </div>
@@ -45,6 +43,9 @@
                 <p>Round 1</p>
                 <div id="game-timer" class="timer">00:20</div>
                 <div id="player-list" class="player-list"> </div>
+                <div class="center-button">
+                    <div id="guess-word" class="send-word-button-container" onclick="guessWord()">Guess Word</div>
+                </div>
             </div>
         </template>
     </body>

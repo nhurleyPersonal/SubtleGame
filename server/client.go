@@ -195,8 +195,6 @@ func handleShowPage(client *Client, msg JSONMessage) {
 func (c *Client) ReadPump(hub *Hub) {
 	defer func() {
 		hub.unregister <- c
-
-		log.Println("ReadPump: Client disconnected, Read Closed")
 	}()
 	for {
 		_, message, err := c.conn.ReadMessage() // Read a message from the WebSocket connection

@@ -13,6 +13,7 @@ import (
 func connectionHandler(w http.ResponseWriter, r *http.Request) {
 	log.Println(r.URL)
 	serverID := r.URL.Query().Get("serverID")
+	playerID := r.URL.Query().Get("playerID")
 	hub, ok := hubMultiplexer.hubs[serverID]
 	if !ok {
 		log.Println("Hub not found")
@@ -21,7 +22,7 @@ func connectionHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Check if the request is a WebSocket upgrade request
 	if websocket.IsWebSocketUpgrade(r) {
-		err := clientJoinsLobby(w, r, hub)
+		err := clientJoinsLobby(w, r, hub, playerID)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
@@ -29,13 +30,28 @@ func connectionHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func clientJoinsLobby(w http.ResponseWriter, r *http.Request, hub *Hub) error {
+func clientJoinsLobby(w http.ResponseWriter, r *http.Request, hub *Hub, playerID string) error {
+	log.Println("UPGRDING")
+	log.Println(playerID)
 	ws, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		log.Println("connection error:", err)
 		return errors.New("connection error")
 	}
+
 	client := &Client{conn: ws, send: make(chan Message, 256), sendJSON: make(chan JSONMessage, 256)} // Increase buffer size
+
+	if playerID != "" {
+		for c := range hub.clients {
+			if c.player.ID == playerID {
+				client = c
+				client.conn = ws
+				c.send = make(chan Message)
+				c.sendJSON = make(chan JSONMessage)
+				log.Println("REASSIGNED CLIENT")
+			}
+		}
+	}
 
 	go client.ReadPump(hub)
 	go client.WritePump(hub)

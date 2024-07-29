@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"log"
 	"math/rand"
-	"net/http"
 	"sync"
 	"time"
 
@@ -46,7 +45,6 @@ func (h *Hub) CleanUp(c *Client) {
 	if _, ok := h.clients[c]; ok {
 		close(c.send)
 		close(c.sendJSON)
-		h.gameState.RemovePlayer(c.player)
 		c.conn.Close()
 	}
 
@@ -63,25 +61,26 @@ func (h *Hub) CleanUp(c *Client) {
 				log.Println("Reconnection attempts timed out")
 				h.mu.Lock()
 				delete(h.clients, c)
+				h.gameState.RemovePlayer(c.player)
 				h.mu.Unlock()
 				return
 			case <-ticker.C:
 
-				// Construct the WebSocket URL
-				url := "wss://" + c.conn.RemoteAddr().String()
-				log.Println("Attempting to reconnect to:", url)
+				// // Construct the WebSocket URL
+				// url := "wss://" + c.conn.RemoteAddr().String()
+				// log.Println("Attempting to reconnect to:", url)
 
-				// Print headers if needed (example, adjust as necessary)
-				headers := make(http.Header)
-				headers.Add("Origin", "http://example.com")
-				log.Println("Request headers:", headers)
+				// // Print headers if needed (example, adjust as necessary)
+				// headers := make(http.Header)
+				// headers.Add("Origin", "http://example.com")
+				// log.Println("Request headers:", headers)
 
-				newConn, _, err := websocket.DefaultDialer.Dial(c.conn.RemoteAddr().String(), nil)
-				if err != nil {
-					log.Println("Reconnection attempt failed:", err)
-					continue
-				}
-				c.conn = newConn
+				// newConn, _, err := websocket.DefaultDialer.Dial(c.conn.RemoteAddr().String(), nil)
+				// if err != nil {
+				// 	log.Println("Reconnection attempt failed:", err)
+				// 	continue
+				// }
+				// c.conn = newConn
 				// h.register <- c
 				return
 			}

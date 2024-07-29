@@ -4,10 +4,15 @@ let currentPlayer;
 let currentPlayers = [];
 let currentPlayersMap = {}; // I sincerely apologize for this monstrosity
 
-async function joinGameServer(name, serverID) {
+async function joinGameServer(name, serverID, selfPlayerID) {
+  let wsUrl = "";
   try {
     let protocol = window.location.protocol === "https:" ? "wss://" : "ws://";
-    const wsUrl = `${protocol}${window.location.host}/ws?serverID=${serverID}`;
+    if (selfPlayerID) {
+      wsUrl = `${protocol}${window.location.host}/ws?serverID=${serverID}&playerID=${selfPlayerID}`;
+    } else {
+      wsUrl = `${protocol}${window.location.host}/ws?serverID=${serverID}`;
+    }
     ws = new WebSocket(wsUrl);
   } catch (error) {
     console.error("WebSocket creation error:", error);

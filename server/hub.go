@@ -68,7 +68,7 @@ func (h *Hub) CleanUp(c *Client) {
 			case <-ticker.C:
 
 				// Construct the WebSocket URL
-				url := "ws://" + c.conn.RemoteAddr().String()
+				url := "wss://" + c.conn.RemoteAddr().String()
 				log.Println("Attempting to reconnect to:", url)
 
 				// Print headers if needed (example, adjust as necessary)
@@ -87,8 +87,6 @@ func (h *Hub) CleanUp(c *Client) {
 			}
 		}
 	}()
-
-	delete(h.clients, c)
 
 	currentPlayers, err := json.Marshal(h.gameState.GetPlayers())
 	if err != nil {

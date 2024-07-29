@@ -40,6 +40,35 @@ func (h *Hub) GetGameState() *GameState {
 }
 
 func (h *Hub) CleanUp(c *Client) {
+
+	log.Println("Attempting Reconnection")
+	// Handle reconnection
+	go func() {
+		timeout := time.After(1 * time.Minute)
+		ticker := time.NewTicker(5 * time.Second)
+		defer ticker.Stop()
+
+		for {
+			select {
+			case <-timeout:
+				log.Println("Reconnection attempts timed out")
+				h.mu.Lock()
+				delete(h.clients, c)
+				h.mu.Unlock()
+				return
+			case <-ticker.C:
+				newConn, _, err := websocket.DefaultDialer.Dial(c.conn.RemoteAddr().String(), nil)
+				if err != nil {
+					log.Println("Reconnection attempt failed:", err)
+					continue
+				}
+				c.conn = newConn
+				h.register <- c
+				return
+			}
+		}
+	}()
+
 	log.Println("Cleaning up client")
 	if _, ok := h.clients[c]; ok {
 		delete(h.clients, c)

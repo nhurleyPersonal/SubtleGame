@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"log"
 	"math/rand"
+	"net/http"
 	"sync"
 	"time"
 
@@ -57,6 +58,16 @@ func (h *Hub) CleanUp(c *Client) {
 				h.mu.Unlock()
 				return
 			case <-ticker.C:
+
+				// Construct the WebSocket URL
+				url := "ws://" + c.conn.RemoteAddr().String()
+				log.Println("Attempting to reconnect to:", url)
+
+				// Print headers if needed (example, adjust as necessary)
+				headers := make(http.Header)
+				headers.Add("Origin", "http://example.com")
+				log.Println("Request headers:", headers)
+
 				newConn, _, err := websocket.DefaultDialer.Dial(c.conn.RemoteAddr().String(), nil)
 				if err != nil {
 					log.Println("Reconnection attempt failed:", err)

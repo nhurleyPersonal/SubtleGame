@@ -13,9 +13,6 @@ import (
 func connectionHandler(w http.ResponseWriter, r *http.Request) {
 
 	serverID := r.URL.Query().Get("serverID")
-	log.Println(r.URL)
-	log.Println("SERVER ID", serverID)
-	log.Println("HUBS", hubMultiplexer.hubs)
 	hub, ok := hubMultiplexer.hubs[serverID]
 	if !ok {
 		log.Println("Hub not found")
@@ -38,7 +35,6 @@ func clientJoinsLobby(w http.ResponseWriter, r *http.Request, hub *Hub) error {
 		log.Println("connection error:", err)
 		return errors.New("connection error")
 	}
-	log.Println("WebSocket connection established")                                                   // Log connection establishment
 	client := &Client{conn: ws, send: make(chan Message, 256), sendJSON: make(chan JSONMessage, 256)} // Increase buffer size
 
 	go client.ReadPump(hub)
@@ -71,7 +67,6 @@ func gameLobbyHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		// Use the name value as needed
-		log.Println("Received name:", data.Name)
 	}
 
 	tmpl, err := template.ParseFiles("static/gamelobby.html")

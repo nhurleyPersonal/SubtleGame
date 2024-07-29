@@ -53,8 +53,6 @@ func handleJoinGame(hub *Hub, client *Client, msg JSONMessage) {
 		ServerID   string `json:"serverID"`
 	}
 
-	log.Println("HUB CLIENTS 22222", hub.clients)
-
 	var body JoinGameBody
 	if err := json.Unmarshal(msg.Body, &body); err != nil {
 		log.Println("unmarshal error:", err)
@@ -75,7 +73,6 @@ func handleStartGame(hub *Hub, client *Client, msg JSONMessage) {
 		log.Println("unmarshal error:", err)
 		return
 	}
-	log.Println(body.Leader)
 	if body.Leader == "leader" {
 		didStart := hub.gameState.StartGame()
 		if didStart {
@@ -149,7 +146,6 @@ func handleGuessWord(hub *Hub, client *Client, msg JSONMessage) {
 		return
 	}
 
-	log.Println("GUESS RESULTS", completelyCorrect, partiallyCorrect)
 	client.send <- Message{
 		Type: "guessResults",
 		Body: fmt.Sprintf(`{"completelyCorrect": %s, "partiallyCorrect": %s}`,
@@ -198,7 +194,6 @@ func handleShowPage(client *Client, msg JSONMessage) {
 
 func (c *Client) ReadPump(hub *Hub) {
 	defer func() {
-		log.Println("ReadPump: Sending client to unregister channel")
 		hub.unregister <- c
 
 		log.Println("ReadPump: Client disconnected, Read Closed")
@@ -209,7 +204,6 @@ func (c *Client) ReadPump(hub *Hub) {
 			log.Println("read error:", err)
 			break // Exit the loop on error
 		}
-		log.Println("Received JSON message:", string(message))
 
 		var msg Message
 		var msgJSON JSONMessage
@@ -227,10 +221,7 @@ func (c *Client) ReadPump(hub *Hub) {
 
 func (c *Client) WritePump(hub *Hub) {
 	defer func() {
-		log.Println("WritePump: Sending client to unregister channel")
 		hub.unregister <- c
-
-		log.Println("WritePump: Client disconnected, Write Closed")
 	}()
 	for {
 		select {

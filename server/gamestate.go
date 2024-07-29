@@ -3,7 +3,6 @@ package server
 import (
 	"errors"
 	"fmt"
-	"log"
 	"strings"
 	"sync"
 	"time"
@@ -151,13 +150,11 @@ func (gs *GameState) GetPassToClientPlayers() []PassToClientPlayer {
 func (gs *GameState) RemovePlayer(player Player) bool {
 	gs.mu.Lock()
 	defer gs.mu.Unlock()
-	log.Println("Removing player", player)
 	_, ok := gs.Players[player.ID]
 	if !ok {
 		return false
 	}
 	delete(gs.Players, player.ID)
-	log.Printf("Removed player with ID %s", player.ID)
 	return true
 }
 
@@ -201,12 +198,8 @@ func (gs *GameState) GuessWord(word string, selfPlayerID string, targetPlayerID 
 	var completelyCorrect []int
 	var partiallyCorrect []int
 
-	log.Println("GUESS !!!!", word)
-
-	log.Println("TARGET WORD !!!!", targetWord)
 	for i := 0; i < len(word); i++ {
 		if word[i] == targetWord[i] {
-			log.Println(word, targetWord, i)
 			completelyCorrect = append(completelyCorrect, i)
 			rebuiltTarget = replaceAtIndex(rebuiltTarget, '*', i)
 			rebuiltGuess = replaceAtIndex(rebuiltGuess, '*', i)

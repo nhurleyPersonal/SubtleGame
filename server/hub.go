@@ -42,6 +42,14 @@ func (h *Hub) GetGameState() *GameState {
 
 func (h *Hub) CleanUp(c *Client) {
 
+	log.Println("Cleaning up client")
+	if _, ok := h.clients[c]; ok {
+		close(c.send)
+		close(c.sendJSON)
+		h.gameState.RemovePlayer(c.player)
+		c.conn.Close()
+	}
+
 	log.Println("Attempting Reconnection")
 	// Handle reconnection
 	func() {
@@ -74,20 +82,13 @@ func (h *Hub) CleanUp(c *Client) {
 					continue
 				}
 				c.conn = newConn
-				h.register <- c
+				// h.register <- c
 				return
 			}
 		}
 	}()
 
-	log.Println("Cleaning up client")
-	if _, ok := h.clients[c]; ok {
-		delete(h.clients, c)
-		close(c.send)
-		close(c.sendJSON)
-		h.gameState.RemovePlayer(c.player)
-		defer c.conn.Close()
-	}
+	delete(h.clients, c)
 
 	currentPlayers, err := json.Marshal(h.gameState.GetPlayers())
 	if err != nil {

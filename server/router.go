@@ -51,7 +51,7 @@ func clientJoinsLobby(w http.ResponseWriter, r *http.Request, hub *Hub, playerID
 				c.sendJSON = make(chan JSONMessage)
 				log.Println("REASSIGNED CLIENT")
 				log.Println(client)
-				log.Println(hub.clients)
+				log.Println(hub.clients[client])
 			}
 		}
 	}

@@ -43,7 +43,7 @@ func (h *Hub) CleanUp(c *Client) {
 
 	log.Println("Attempting Reconnection")
 	// Handle reconnection
-	go func() {
+	func() {
 		timeout := time.After(1 * time.Minute)
 		ticker := time.NewTicker(5 * time.Second)
 		defer ticker.Stop()

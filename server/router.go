@@ -52,6 +52,12 @@ func clientJoinsLobby(w http.ResponseWriter, r *http.Request, hub *Hub, playerID
 				log.Println("REASSIGNED CLIENT")
 				log.Println(client)
 				log.Println(hub.clients[client])
+				response := Message{
+					Type: "printThis",
+					Body: "",
+				}
+				client.send <- response
+
 			}
 		}
 	}

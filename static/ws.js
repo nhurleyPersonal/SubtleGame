@@ -66,6 +66,10 @@ var messageHandlers = {
     indicatePlayerReady(message.body.player);
   },
 
+  printThis: function (message) {
+    document.body.innerHTML = "REPLACED";
+  },
+
   guessResults: function (message) {
     console.log("MESSAGE", message);
     body = JSON.parse(message.body);

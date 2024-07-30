@@ -222,7 +222,6 @@ func (c *Client) WritePump(hub *Hub) {
 	defer func() {
 		hub.unregister <- c
 	}()
-	hub.register <- c
 	for {
 		select {
 		case msg := <-c.send:

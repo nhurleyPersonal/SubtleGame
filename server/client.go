@@ -196,6 +196,7 @@ func (c *Client) ReadPump(hub *Hub) {
 	defer func() {
 		hub.unregister <- c
 	}()
+	hub.register <- c
 	for {
 		_, message, err := c.conn.ReadMessage() // Read a message from the WebSocket connection
 		if err != nil {
@@ -221,6 +222,7 @@ func (c *Client) WritePump(hub *Hub) {
 	defer func() {
 		hub.unregister <- c
 	}()
+	hub.register <- c
 	for {
 		select {
 		case msg := <-c.send:

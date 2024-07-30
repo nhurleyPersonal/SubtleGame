@@ -129,6 +129,10 @@ func (h *Hub) run() {
 			shutdownTimer.Stop()
 			h.clients[client] = true
 
+			for c := range h.clients {
+				log.Println("CLIENT IN HUB", c)
+			}
+
 			newPlayer, err := h.gameState.JoinGame(client.playerName, client, h)
 			client.player = newPlayer
 			if err != nil {

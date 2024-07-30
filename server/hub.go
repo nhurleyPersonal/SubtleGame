@@ -130,7 +130,7 @@ func (h *Hub) run() {
 			h.clients[client] = true
 
 			for c := range h.clients {
-				log.Println("CLIENT IN HUB", c)
+				log.Println("CLIENTS IN HUB", c.player.Name)
 			}
 
 			newPlayer, err := h.gameState.JoinGame(client.playerName, client, h)

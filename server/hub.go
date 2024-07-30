@@ -129,6 +129,8 @@ func (h *Hub) run() {
 			shutdownTimer.Stop()
 			h.clients[client] = true
 
+			log.Println("REGISTERING CLIENT")
+
 			newPlayer, err := h.gameState.JoinGame(client.playerName, client, h)
 			client.player = newPlayer
 			if err != nil {

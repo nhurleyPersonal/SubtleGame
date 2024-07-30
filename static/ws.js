@@ -43,7 +43,7 @@ async function joinGameServer(name, serverID, selfPlayerID) {
     if (reconnectAttempts < maxReconnectAttempts) {
       setTimeout(() => {
         reconnectAttempts++;
-        joinGameServer(name, serverID, currentPlayer.id);
+        // joinGameServer(name, serverID, currentPlayer.id);
       }, reconnectInterval);
     } else {
       console.log("Max reconnection attempts reached");
@@ -71,13 +71,11 @@ var messageHandlers = {
   },
 
   guessResults: function (message) {
-    console.log("MESSAGE", message);
     body = JSON.parse(message.body);
     writeGuessResults(body.completelyCorrect, body.partiallyCorrect);
   },
 
   correctWord: function (message) {
-    console.log("MESSAGE", message);
     let completelyCorrect = [];
     for (let i = 0; i < inputWord.length; i++) {
       completelyCorrect.push(i);

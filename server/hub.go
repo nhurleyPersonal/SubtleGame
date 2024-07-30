@@ -129,15 +129,15 @@ func (h *Hub) run() {
 			shutdownTimer.Stop()
 			h.clients[client] = true
 
-			for c := range h.clients {
-				log.Println("CLIENTS IN HUB", c.player.Name)
-			}
-
 			newPlayer, err := h.gameState.JoinGame(client.playerName, client, h)
 			client.player = newPlayer
 			if err != nil {
 				log.Println("error joining game:", err)
 				return
+			}
+
+			for c := range h.clients {
+				log.Println("CLIENTS IN HUB", c.player.Name)
 			}
 
 			newPlayerJSON, err := json.Marshal(newPlayer)

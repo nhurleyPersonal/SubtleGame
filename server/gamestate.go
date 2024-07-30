@@ -3,6 +3,7 @@ package server
 import (
 	"errors"
 	"fmt"
+	"log"
 	"strings"
 	"sync"
 	"time"
@@ -128,6 +129,7 @@ func (gs *GameState) GetPlayers() []Player {
 	defer gs.mu.Unlock()
 	players := make([]Player, 0, len(gs.Players))
 	for _, player := range gs.Players {
+		log.Println("PLAYER IN GAMESTATE GETPLAYERS", player.Name)
 		players = append(players, player)
 	}
 	return players

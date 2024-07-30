@@ -142,6 +142,10 @@ func (h *Hub) run() {
 				log.Println("CLIENTS IN HUB", c.player.Name)
 			}
 
+			for p := range h.gameState.Players {
+				log.Println("PLAYERS IN GAME", h.gameState.Players[p].Name)
+			}
+
 			newPlayerJSON, err := json.Marshal(newPlayer)
 			if err != nil {
 				log.Println("error marshalling game state:", err)

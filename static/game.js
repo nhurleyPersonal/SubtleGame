@@ -284,13 +284,17 @@ function writeGuessResults(completelyCorrect, partiallyCorrect) {
 }
 
 // I ralize how horrendous this is, hopefully this will be fixed when I refactor to htmx
+// I hate this so much
 function writePlayerScore(playerID) {
   let targetDiv;
   let targetPlayer = currentPlayers.find((player) => player.id === playerID);
   let targetPlayerName = targetPlayer.Name;
   let playerList = document.body.querySelector(".player-list");
   Array.from(playerList.children).forEach((playerDiv) => {
-    playerName = playerDiv.querySelector("player-name").innerHTML;
+    let playerName = playerDiv.querySelector(".player-name").innerHTML;
+    if (!playerName) {
+      playerName = playerDiv.querySelector(".self-player-name").innerHTML;
+    }
     if (playerName === targetPlayerName) {
       targetDiv = playerDiv;
     }

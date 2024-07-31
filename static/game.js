@@ -297,6 +297,6 @@ function writePlayerScore(playerID) {
   });
 
   targetDiv.querySelector(
-    "player-score"
+    ".player-score"
   ).innerHTML = `Score (${targetPlayer.Score})`;
 }

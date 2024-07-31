@@ -15,6 +15,7 @@ type Hub struct {
 	broadcast      chan Message
 	broadcastJSON  chan JSONMessage
 	register       chan *Client
+	reconnect      chan *Client
 	unregister     chan *Client
 	gameState      GameState
 	connToPlayerId map[*websocket.Conn]string
@@ -28,6 +29,7 @@ func NewHub(lobbyID string) *Hub {
 		broadcast:      make(chan Message),
 		broadcastJSON:  make(chan JSONMessage),
 		register:       make(chan *Client),
+		reconnect:      make(chan *Client),
 		unregister:     make(chan *Client),
 		gameState:      GameState{},
 		serverCode:     lobbyID,
@@ -43,6 +45,7 @@ func (h *Hub) CleanUp(c *Client) {
 
 	log.Println("Cleaning up client")
 	if _, ok := h.clients[c]; ok {
+		delete(h.clients, c)
 		close(c.send)
 		close(c.sendJSON)
 		c.conn.Close()
@@ -60,7 +63,6 @@ func (h *Hub) CleanUp(c *Client) {
 			case <-timeout:
 				log.Println("Reconnection attempts timed out")
 				h.mu.Lock()
-				delete(h.clients, c)
 				h.gameState.RemovePlayer(c.player)
 				h.mu.Unlock()
 				return
@@ -129,8 +131,6 @@ func (h *Hub) run() {
 			shutdownTimer.Stop()
 			h.clients[client] = true
 
-			log.Println("REGISTERING CLIENT")
-
 			newPlayer, err := h.gameState.JoinGame(client.playerName, client, h)
 			client.player = newPlayer
 			if err != nil {
@@ -163,6 +163,47 @@ func (h *Hub) run() {
 			}
 
 			client.send <- sendToPlayer
+
+			sendInitalPlayers := Message{
+				Type: "currentPlayers",
+				Body: string(playersJSON),
+			}
+
+			h.broadcast <- sendInitalPlayers
+			h.mu.Unlock() // Release the lock
+
+		case c := <-h.reconnect:
+			h.mu.Lock()
+			shutdownTimer.Stop()
+			h.clients[c] = true
+			log.Println("CLIENT RECONNECT DEETS", c.playerID, c.playerName)
+
+			reconnectPlayer, err := h.gameState.ReconnectPlayer(c, h)
+			if err != nil {
+				log.Println("error joining game:", err)
+				continue
+			}
+			c.player = reconnectPlayer
+
+			log.Println("RECONNECTED PLAYER", c.player.Name)
+
+			reconnecPlayerJSON, err := json.Marshal(reconnectPlayer)
+			if err != nil {
+				log.Println("error marshalling game state:", err)
+			}
+
+			playersJSON, err := json.Marshal(h.gameState.GetPlayers())
+			if err != nil {
+				log.Println("error marshalling players:", err)
+				return
+			}
+
+			sendToPlayer := Message{
+				Type: "whoami",
+				Body: string(reconnecPlayerJSON),
+			}
+
+			c.send <- sendToPlayer
 
 			sendInitalPlayers := Message{
 				Type: "currentPlayers",

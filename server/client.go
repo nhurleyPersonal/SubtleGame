@@ -21,6 +21,7 @@ type Client struct {
 	send       chan Message
 	sendJSON   chan JSONMessage
 	playerName string
+	playerID   string
 	player     Player
 }
 

@@ -114,6 +114,25 @@ func (gs *GameState) JoinGame(name string, c *Client, hub *Hub) (Player, error) 
 
 }
 
+func (gs *GameState) ReconnectPlayer(c *Client, hub *Hub) (Player, error) {
+	gs.mu.Lock()
+	defer gs.mu.Unlock()
+
+	for pID, player := range gs.Players {
+		if pID == c.playerID {
+			return player, nil
+		}
+	}
+
+	failedToJoinMessage := Message{
+		Type: "reconnectError",
+	}
+
+	c.send <- failedToJoinMessage
+	return Player{}, errors.New("reconnection failed")
+
+}
+
 func (gs *GameState) GetPlayer(playerId string) (*Player, bool) {
 	gs.mu.Lock()
 	defer gs.mu.Unlock()

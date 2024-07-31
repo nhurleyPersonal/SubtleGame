@@ -4,12 +4,12 @@ let currentPlayer;
 let currentPlayers = [];
 let currentPlayersMap = {}; // I sincerely apologize for this monstrosity
 
-async function joinGameServer(name, serverID, selfPlayerID) {
+async function joinGameServer(name, serverID, reconnect) {
   let wsUrl = "";
   try {
     let protocol = window.location.protocol === "https:" ? "wss://" : "ws://";
-    if (selfPlayerID) {
-      wsUrl = `${protocol}${window.location.host}/ws?serverID=${serverID}&playerID=${selfPlayerID}`;
+    if (reconnect) {
+      wsUrl = `${protocol}${window.location.host}/ws?serverID=${serverID}&playerID=${currentPlayer.id}&playerName=${currentPlayer.name}`;
     } else {
       wsUrl = `${protocol}${window.location.host}/ws?serverID=${serverID}`;
     }
@@ -19,12 +19,15 @@ async function joinGameServer(name, serverID, selfPlayerID) {
   }
 
   ws.onopen = function () {
-    console.log("WebSocket connection established");
-    var message = {
-      type: "joinGame",
-      body: { name, serverID },
-    };
-    ws.send(JSON.stringify(message));
+    // Means player already exists in gamestate on reconnect so dont joinGame again
+    if (!reconnect) {
+      console.log("WebSocket connection established");
+      var message = {
+        type: "joinGame",
+        body: { name, serverID },
+      };
+      ws.send(JSON.stringify(message));
+    }
   };
 
   ws.onmessage = function (event) {
@@ -43,7 +46,7 @@ async function joinGameServer(name, serverID, selfPlayerID) {
     if (reconnectAttempts < maxReconnectAttempts) {
       setTimeout(() => {
         reconnectAttempts++;
-        // joinGameServer(name, serverID, currentPlayer.id);
+        joinGameServer(name, serverID, true);
       }, reconnectInterval);
     } else {
       console.log("Max reconnection attempts reached");

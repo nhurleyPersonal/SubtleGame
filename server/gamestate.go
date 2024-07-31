@@ -2,14 +2,11 @@ package server
 
 import (
 	"errors"
-	"fmt"
 	"log"
-	"strings"
 	"sync"
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/makifdb/spellcheck"
 )
 
 type GameState struct {
@@ -79,15 +76,15 @@ func (gs *GameState) SetWord(player *Player, word string) error {
 	gs.mu.Lock()
 	defer gs.mu.Unlock()
 	// Check spelling of a word
-	sc, err := spellcheck.New()
-	if err != nil {
-		fmt.Println(err)
-	}
+	// sc, err := spellcheck.New()
+	// if err != nil {
+	// 	fmt.Println(err)
+	// }
 
-	ok := sc.SearchDirect(strings.ToLower(word))
-	if !ok {
-		return errors.New("noword")
-	}
+	// ok := sc.SearchDirect(strings.ToLower(word))
+	// if !ok {
+	// 	return errors.New("noword")
+	// }
 	player.Word = word
 	player.Ready = true
 	gs.Players[player.ID] = *player
@@ -199,15 +196,15 @@ func (gs *GameState) GuessWord(word string, selfPlayerID string, targetPlayerID 
 		return nil, nil, false
 	}
 
-	sc, err := spellcheck.New()
-	if err != nil {
-		fmt.Println(err)
-	}
+	// sc, err := spellcheck.New()
+	// if err != nil {
+	// 	fmt.Println(err)
+	// }
 
-	ok = sc.SearchDirect(strings.ToLower(word))
-	if !ok {
-		return nil, nil, false
-	}
+	// ok = sc.SearchDirect(strings.ToLower(word))
+	// if !ok {
+	// 	return nil, nil, false
+	// }
 
 	if _, ok := selfPlayer.Guesses[targetPlayer.ID]; !ok {
 		selfPlayer.Guesses[targetPlayer.ID] = []string{}

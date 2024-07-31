@@ -100,7 +100,7 @@ func (h *Hub) CleanUp(c *Client) {
 		Body: string(currentPlayers),
 	}
 
-	h.broadcast <- currentPlayersMessage
+	h.broadcastMessage(currentPlayersMessage)
 }
 
 func (hm *HubMultiplexer) shutdownHub(hubCode string) {
@@ -173,9 +173,7 @@ func (h *Hub) run() {
 
 			log.Println("SENT TO PLAYER 2")
 
-			go func() {
-				h.broadcast <- sendInitalPlayers
-			}()
+			h.broadcastMessage(sendInitalPlayers)
 
 			log.Println("SENT TO ALL PLAYERS")
 			h.mu.Unlock() // Release the lock
@@ -218,9 +216,7 @@ func (h *Hub) run() {
 				Body: string(playersJSON),
 			}
 
-			go func() {
-				h.broadcast <- sendInitalPlayers
-			}()
+			h.broadcastMessage(sendInitalPlayers)
 			h.mu.Unlock() // Release the lock
 
 		case c := <-h.unregister:
@@ -265,6 +261,16 @@ func (h *Hub) run() {
 	}
 }
 
+func (h *Hub) broadcastMessage(message Message) {
+	h.mu.Lock()
+	log.Println("BROADCASTING TO ALL PLAYERS", message)
+	for client := range h.clients {
+		client.send <- message
+	}
+	h.mu.Unlock() // Release the lock
+
+}
+
 func (h *Hub) broadcastGameState() {
 	h.mu.Lock()
 	defer h.mu.Unlock()
@@ -281,12 +287,7 @@ func (h *Hub) broadcastGameState() {
 	}
 
 	for client := range h.clients {
-		select {
-		case client.send <- gameStateMessage:
-		default:
-			close(client.send)
-			delete(h.clients, client)
-		}
+		client.send <- gameStateMessage
 	}
 }
 

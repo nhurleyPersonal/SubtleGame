@@ -173,7 +173,9 @@ func (h *Hub) run() {
 
 			log.Println("SENT TO PLAYER 2")
 
-			h.broadcast <- sendInitalPlayers
+			go func() {
+				h.broadcast <- sendInitalPlayers
+			}()
 
 			log.Println("SENT TO ALL PLAYERS")
 			h.mu.Unlock() // Release the lock
@@ -216,7 +218,9 @@ func (h *Hub) run() {
 				Body: string(playersJSON),
 			}
 
-			h.broadcast <- sendInitalPlayers
+			go func() {
+				h.broadcast <- sendInitalPlayers
+			}()
 			h.mu.Unlock() // Release the lock
 
 		case c := <-h.unregister:

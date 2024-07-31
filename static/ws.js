@@ -79,11 +79,19 @@ var messageHandlers = {
   },
 
   correctWord: function (message) {
-    let completelyCorrect = [];
-    for (let i = 0; i < inputWord.length; i++) {
-      completelyCorrect.push(i);
+    if (message.body.player == currentPlayeer.id) {
+      let completelyCorrect = [];
+      for (let i = 0; i < inputWord.length; i++) {
+        completelyCorrect.push(i);
+      }
+      writeGuessResults(completelyCorrect, []);
     }
-    writeGuessResults(completelyCorrect, []);
+
+    currentPlayers.forEach((player) => {
+      if (player.id == message.body.player) {
+        player.Score++;
+      }
+    });
   },
 
   invalidWord: function (message) {
@@ -104,7 +112,6 @@ var messageHandlers = {
     } else {
       currentPlayers = message.body;
     }
-    deleteCurrentPlayersViews();
     currentPlayers.forEach((player) => {
       if (!player.Ready) {
         document

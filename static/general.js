@@ -156,7 +156,8 @@ function buildPlayerItem(playerInfo) {
   // Create player name element
   var playerName = document.createElement("h2");
   playerName.className = "player-name";
-  playerName.innerText = playerInfo.Name || "Unknown";
+  playerName.innerText =
+    (playerInfo.Name || "Unknown") + ` (Score ${playerInfo.Score})`;
   playerContainer.appendChild(playerName);
 
   var lettersContainer = document.createElement("div");

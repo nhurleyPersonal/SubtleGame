@@ -2,7 +2,6 @@ let selectedBox;
 let selectedBoxIndex;
 let currentBoxIndex = 0;
 let playerNameDivs;
-let playerBoxToPlayerMap = {};
 
 // SELECTING AND FILLING BOX LOGIC
 
@@ -157,8 +156,13 @@ function buildPlayerItem(playerInfo) {
   // Create player name element
   var playerName = document.createElement("h2");
   playerName.className = "player-name";
-  playerName.innerText =
-    (playerInfo.Name || "Unknown") + ` (Score ${playerInfo.Score})`;
+  playerName.innerText = playerInfo.Name || "Unknown";
+  playerContainer.appendChild(playerName);
+
+  // Create player score element
+  var playerScore = document.createElement("h2");
+  playerScore.className = "player-score";
+  playerName.innerText = `(Score ${playerInfo.Score})`;
   playerContainer.appendChild(playerName);
 
   var lettersContainer = document.createElement("div");
@@ -177,11 +181,6 @@ function buildPlayerItem(playerInfo) {
 
   // Append the new player container to the player list
   playerList.appendChild(playerContainer);
-
-  playerBoxToPlayerMap = {
-    ...playerBoxToPlayerMap,
-    [playerContainer]: playerInfo,
-  };
 
   // Attach event listener to the new player container
   playerContainer.addEventListener("click", function (event) {

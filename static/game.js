@@ -217,8 +217,10 @@ function guessWord() {
     return;
   }
 
-  targetPlayerId = playerBoxToPlayerMap[selectedBox].id;
-
+  targetName = selectedBox.querySelector(".player-name").innerHTML;
+  targetPlayerId = currentPlayers.find(
+    (player) => player.Name === targetName
+  ).id;
   ws.send(
     JSON.stringify({
       type: "guessWord",
@@ -279,4 +281,22 @@ function writeGuessResults(completelyCorrect, partiallyCorrect) {
   }
 
   lettersContainerVert.appendChild(guessContainer);
+}
+
+// I ralize how horrendous this is, hopefully this will be fixed when I refactor to htmx
+function writePlayerScore(playerID) {
+  let targetDiv;
+  targetPlayer = currentPlayers.find((player) => player.id === playerID);
+  targetPlayerName = targetPlayer.Name;
+  let playerList = document.body.querySelector("player-list");
+  Array.from(playerList.children).forEach((playerDiv) => {
+    playerName = playerDiv.querySelector("player-name");
+    if (playerName === targetPlayerName) {
+      targetDIv = playerDiv;
+    }
+  });
+
+  targetDiv.querySelector(
+    "player-score"
+  ).innerHTML = `Score (${targetPlayer.Score})`;
 }

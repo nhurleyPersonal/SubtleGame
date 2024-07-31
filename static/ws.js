@@ -90,6 +90,7 @@ var messageHandlers = {
     currentPlayers.forEach((player) => {
       if (player.id == message.body.player) {
         player.Score++;
+        writePlayerScore(player.id);
       }
     });
   },

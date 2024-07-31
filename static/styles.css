@@ -199,6 +199,10 @@ html, body {
     color: #74e880;
 }
 
+.player-container-clicked .player-score {
+    color: #74e880;
+}
+
 .player-container-clicked .self-player-name {
     color: #74e880;
 }
@@ -451,8 +455,19 @@ html, body {
     color: #888888;
     text-align: center; /* Center text */
     
-    width: 100px;
-    max-width: 100px;
+    width: 150px;
+    max-width: 150px;
+}
+
+.player-score {
+    display: flex;
+    border-radius: 4px;
+    font-weight: bold;
+    color: #888888;
+    text-align: center; /* Center text */
+    
+    width: 150px;
+    max-width: 150px;
 }
 
 /* Media query for mobile devices */
@@ -466,12 +481,17 @@ html, body {
         width: 85vw;
     }
     .self-player-name {
-        width: 100px;
+        width: 150px;
         margin-top: 0px;
         margin-bottom: 5px;
     }
     .player-name {
-        width: 100px;
+        width: 150px;
+        margin-top: 0px;
+        margin-bottom: 5px;
+    }
+    .player-score {
+        width: 150px;
         margin-top: 0px;
         margin-bottom: 5px;
     }

@@ -291,9 +291,11 @@ function writePlayerScore(playerID) {
   let targetPlayerName = targetPlayer.Name;
   let playerList = document.body.querySelector(".player-list");
   Array.from(playerList.children).forEach((playerDiv) => {
-    let playerName = playerDiv.querySelector(".player-name").innerHTML;
+    let playerName = playerDiv.querySelector(".player-name");
     if (!playerName) {
       playerName = playerDiv.querySelector(".self-player-name").innerHTML;
+    } else {
+      playerName = playerDiv.querySelector(".player-name").innerHTML;
     }
     if (playerName === targetPlayerName) {
       targetDiv = playerDiv;

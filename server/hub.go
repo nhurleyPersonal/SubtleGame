@@ -164,12 +164,18 @@ func (h *Hub) run() {
 
 			client.send <- sendToPlayer
 
+			log.Println("SENT TO PLAYER")
+
 			sendInitalPlayers := Message{
 				Type: "currentPlayers",
 				Body: string(playersJSON),
 			}
 
+			log.Println("SENT TO PLAYER 2")
+
 			h.broadcast <- sendInitalPlayers
+
+			log.Println("SENT TO ALL PLAYERS")
 			h.mu.Unlock() // Release the lock
 
 		case c := <-h.reconnect:

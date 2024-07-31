@@ -163,7 +163,7 @@ function buildPlayerItem(playerInfo) {
   var playerScore = document.createElement("h2");
   playerScore.className = "player-score";
   playerName.innerText = `(Score ${playerInfo.Score})`;
-  playerContainer.appendChild(playerName);
+  playerContainer.appendChild(playerScore);
 
   var lettersContainer = document.createElement("div");
   lettersContainer.className = "letters-container";

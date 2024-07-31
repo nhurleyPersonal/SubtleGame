@@ -79,7 +79,7 @@ var messageHandlers = {
   },
 
   correctWord: function (message) {
-    if (message.body.player == currentPlayeer.id) {
+    if (message.body.player == currentPlayer.id) {
       let completelyCorrect = [];
       for (let i = 0; i < inputWord.length; i++) {
         completelyCorrect.push(i);

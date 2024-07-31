@@ -186,6 +186,8 @@ func (gs *GameState) GuessWord(word string, selfPlayerID string, targetPlayerID 
 	gs.mu.Lock()
 	defer gs.mu.Unlock()
 
+	log.Println("CALLED")
+
 	selfPlayer, ok := gs.Players[selfPlayerID]
 	if !ok {
 		return nil, nil, false

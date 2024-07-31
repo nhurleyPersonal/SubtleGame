@@ -234,6 +234,7 @@ func (h *Hub) run() {
 
 		case message := <-h.broadcast:
 			h.mu.Lock()
+			log.Println("BROADCASTING TO ALL PLAYERS", message)
 			for client := range h.clients {
 				select {
 				case client.send <- message:

@@ -288,7 +288,7 @@ function writePlayerScore(playerID) {
   let targetDiv;
   targetPlayer = currentPlayers.find((player) => player.id === playerID);
   targetPlayerName = targetPlayer.Name;
-  let playerList = document.body.querySelector("player-list");
+  let playerList = document.body.querySelector(".player-list");
   Array.from(playerList.children).forEach((playerDiv) => {
     playerName = playerDiv.querySelector("player-name");
     if (playerName === targetPlayerName) {

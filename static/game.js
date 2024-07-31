@@ -292,7 +292,7 @@ function writePlayerScore(playerID) {
   Array.from(playerList.children).forEach((playerDiv) => {
     playerName = playerDiv.querySelector("player-name");
     if (playerName === targetPlayerName) {
-      targetDIv = playerDiv;
+      targetDiv = playerDiv;
     }
   });
 

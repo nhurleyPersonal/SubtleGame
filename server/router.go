@@ -14,7 +14,6 @@ func connectionHandler(w http.ResponseWriter, r *http.Request) {
 	log.Println("HERE", r.URL)
 	serverID := r.URL.Query().Get("serverID")
 	playerID := r.URL.Query().Get("playerID")
-	playerName := r.URL.Query().Get("playerName")
 	log.Println(serverID, playerID)
 	hub, ok := hubMultiplexer.hubs[serverID]
 	if !ok {
@@ -24,7 +23,7 @@ func connectionHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Check if the request is a WebSocket upgrade request
 	if websocket.IsWebSocketUpgrade(r) {
-		err := clientJoinsLobby(w, r, hub, playerID, playerName)
+		err := clientJoinsLobby(w, r, hub, playerID)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
@@ -32,7 +31,7 @@ func connectionHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func clientJoinsLobby(w http.ResponseWriter, r *http.Request, hub *Hub, playerID string, playerName string) error {
+func clientJoinsLobby(w http.ResponseWriter, r *http.Request, hub *Hub, playerID string) error {
 	log.Println("UPGRDING")
 	log.Println(playerID)
 	ws, err := upgrader.Upgrade(w, r, nil)
@@ -45,7 +44,6 @@ func clientJoinsLobby(w http.ResponseWriter, r *http.Request, hub *Hub, playerID
 
 	if playerID != "" {
 		client.playerID = playerID
-		client.playerName = playerName
 		hub.reconnect <- client
 	}
 

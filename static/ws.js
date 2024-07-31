@@ -9,7 +9,7 @@ async function joinGameServer(name, serverID, reconnect) {
   try {
     let protocol = window.location.protocol === "https:" ? "wss://" : "ws://";
     if (reconnect) {
-      wsUrl = `${protocol}${window.location.host}/ws?serverID=${serverID}&playerID=${currentPlayer.id}&playerName=${currentPlayer.name}`;
+      wsUrl = `${protocol}${window.location.host}/ws?serverID=${serverID}&playerID=${currentPlayer.id}`;
     } else {
       wsUrl = `${protocol}${window.location.host}/ws?serverID=${serverID}`;
     }

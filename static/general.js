@@ -162,7 +162,7 @@ function buildPlayerItem(playerInfo) {
   // Create player score element
   var playerScore = document.createElement("h2");
   playerScore.className = "player-score";
-  playerName.innerText = `(Score ${playerInfo.Score})`;
+  playerScore.innerText = `(Score ${playerInfo.Score})`;
   playerContainer.appendChild(playerScore);
 
   var lettersContainer = document.createElement("div");

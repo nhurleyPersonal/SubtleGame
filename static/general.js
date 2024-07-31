@@ -115,6 +115,12 @@ function buildSelfPlayerGameView(playerInfo) {
   playerName.innerText = playerInfo.Name || "Unknown";
   playerContainer.appendChild(playerName);
 
+  // Create player score element
+  var playerScore = document.createElement("h2");
+  playerScore.className = "player-score";
+  playerScore.innerText = `(Score ${playerInfo.Score})`;
+  playerContainer.appendChild(playerScore);
+
   // Create letters container
   var lettersContainer = document.createElement("div");
   lettersContainer.className = "letters-container";

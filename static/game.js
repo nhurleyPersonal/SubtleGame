@@ -217,10 +217,8 @@ function guessWord() {
     return;
   }
 
-  targetName = selectedBox.querySelector(".player-name").innerHTML;
-  targetPlayerId = currentPlayers.find(
-    (player) => player.Name === targetName
-  ).id;
+  targetPlayerId = playerBoxToPlayerMap[selectedBox].id;
+
   ws.send(
     JSON.stringify({
       type: "guessWord",

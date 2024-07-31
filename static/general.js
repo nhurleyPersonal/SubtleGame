@@ -2,6 +2,7 @@ let selectedBox;
 let selectedBoxIndex;
 let currentBoxIndex = 0;
 let playerNameDivs;
+let playerBoxToPlayerMap = {};
 
 // SELECTING AND FILLING BOX LOGIC
 
@@ -176,6 +177,11 @@ function buildPlayerItem(playerInfo) {
 
   // Append the new player container to the player list
   playerList.appendChild(playerContainer);
+
+  playerBoxToPlayerMap = {
+    ...playerBoxToPlayerMap,
+    [playerContainer]: playerInfo,
+  };
 
   // Attach event listener to the new player container
   playerContainer.addEventListener("click", function (event) {

@@ -262,12 +262,10 @@ func (h *Hub) run() {
 }
 
 func (h *Hub) broadcastMessage(message Message) {
-	h.mu.Lock()
 	log.Println("BROADCASTING TO ALL PLAYERS", message)
 	for client := range h.clients {
 		client.send <- message
 	}
-	h.mu.Unlock() // Release the lock
 
 }
 

@@ -14,23 +14,27 @@ type Hub struct {
 	clients        map[*Client]bool
 	broadcast      chan Message
 	broadcastJSON  chan JSONMessage
+	broadcasthtml  chan string
 	register       chan *Client
 	reconnect      chan *Client
 	unregister     chan *Client
 	gameState      GameState
 	connToPlayerId map[*websocket.Conn]string
 	serverCode     string
-	mu             sync.Mutex
+
+	mu sync.Mutex
 }
 
 func NewHub(lobbyID string) *Hub {
 	return &Hub{
-		clients:        make(map[*Client]bool),
-		broadcast:      make(chan Message),
-		broadcastJSON:  make(chan JSONMessage),
-		register:       make(chan *Client),
-		reconnect:      make(chan *Client),
-		unregister:     make(chan *Client),
+		clients:       make(map[*Client]bool),
+		broadcast:     make(chan Message),
+		broadcastJSON: make(chan JSONMessage),
+		broadcasthtml: make(chan string),
+		register:      make(chan *Client),
+		reconnect:     make(chan *Client),
+		unregister:    make(chan *Client),
+
 		gameState:      GameState{},
 		serverCode:     lobbyID,
 		connToPlayerId: make(map[*websocket.Conn]string),
@@ -138,44 +142,23 @@ func (h *Hub) run() {
 				return
 			}
 
-			for c := range h.clients {
-				log.Println("CLIENTS IN HUB", c.player.Name)
+			// Send all other player info to registering client
+			// Send registering client info to all other players as well
+			for cOther := range h.clients {
+				if cOther == client {
+					continue
+				}
+
+				cPlayer := h.gameState.Players[cOther.player.ID]
+				SendPlayerJoinLobby(client, cOther.player.Name)
+
+				if cPlayer.Ready {
+					SendLobbyPlayerReady(client, cOther.player.Name)
+				}
+
+				SendPlayerJoinLobby(cOther, client.player.Name)
 			}
 
-			for p := range h.gameState.Players {
-				log.Println("PLAYERS IN GAME", h.gameState.Players[p].Name)
-			}
-
-			newPlayerJSON, err := json.Marshal(newPlayer)
-			if err != nil {
-				log.Println("error marshalling game state:", err)
-			}
-
-			playersJSON, err := json.Marshal(h.gameState.GetPlayers())
-			if err != nil {
-				log.Println("error marshalling players:", err)
-				return
-			}
-
-			sendToPlayer := Message{
-				Type: "whoami",
-				Body: string(newPlayerJSON),
-			}
-
-			client.send <- sendToPlayer
-
-			log.Println("SENT TO PLAYER")
-
-			sendInitalPlayers := Message{
-				Type: "currentPlayers",
-				Body: string(playersJSON),
-			}
-
-			log.Println("SENT TO PLAYER 2")
-
-			h.broadcastMessage(sendInitalPlayers)
-
-			log.Println("SENT TO ALL PLAYERS")
 			h.mu.Unlock() // Release the lock
 
 		case c := <-h.reconnect:
@@ -193,23 +176,11 @@ func (h *Hub) run() {
 
 			log.Println("RECONNECTED PLAYER", c.player.Name)
 
-			reconnecPlayerJSON, err := json.Marshal(reconnectPlayer)
-			if err != nil {
-				log.Println("error marshalling game state:", err)
-			}
-
 			playersJSON, err := json.Marshal(h.gameState.GetPlayers())
 			if err != nil {
 				log.Println("error marshalling players:", err)
 				return
 			}
-
-			sendToPlayer := Message{
-				Type: "whoami",
-				Body: string(reconnecPlayerJSON),
-			}
-
-			c.send <- sendToPlayer
 
 			sendInitalPlayers := Message{
 				Type: "currentPlayers",
@@ -226,7 +197,7 @@ func (h *Hub) run() {
 			h.mu.Unlock()
 
 		case <-ticker.C:
-			h.broadcastGameState()
+			// h.broadcastGameState()
 
 		case <-shutdownTimer.C:
 			hubMultiplexer.shutdownHub(h.serverCode)
@@ -257,7 +228,21 @@ func (h *Hub) run() {
 			}
 			h.mu.Unlock() // Release the lock
 
+		case message := <-h.broadcasthtml:
+			h.mu.Lock()
+			log.Println("BROADCASTING TO ALL PLAYERS", message)
+			for client := range h.clients {
+				select {
+				case client.sendhtml <- message:
+				default:
+					close(client.send)
+					delete(h.clients, client)
+				}
+			}
+			h.mu.Unlock() // Release the lock
+
 		}
+
 	}
 }
 

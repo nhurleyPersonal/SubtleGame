@@ -16,13 +16,12 @@ function handleKeydown(event) {
     // Fill the current box with the typed letter
     letterBoxes[currentBoxIndex].innerText = key.toUpperCase();
     letterBoxes[currentBoxIndex].classList.add("letter-filled");
+    let inputVal = "";
 
-    // Remove highlight from the current box
-
-    if (currentBoxIndex === letterBoxes.length - 1) {
-      sendButton = document.querySelector(".send-word-button-container");
-      sendButton.classList.add("send-word-button-ready");
-    }
+    letterBoxes.forEach((box) => {
+      inputVal += box.innerHTML;
+    });
+    document.getElementById("letters-value").value = inputVal;
 
     if (currentBoxIndex < letterBoxes.length - 1) {
       letterBoxes[currentBoxIndex].classList.remove("letter-highlight");
@@ -43,6 +42,9 @@ function handleKeydown(event) {
     sendButton.classList.remove("send-word-button-ready");
     letterBoxes[currentBoxIndex].classList.remove("letter-filled");
     letterBoxes[currentBoxIndex].classList.remove("letter-highlight");
+
+    // prevVal = document.getElementById("letters-value").value;
+    // document.getElementById("letters-value").value = prevVal.slice(0, -1);
 
     if (
       currentBoxIndex === letterBoxes.length - 1 &&
@@ -74,12 +76,10 @@ function selectPlayer() {
 }
 
 function playerRowClicked(row, index) {
-  if (row.querySelector(".player-name").innerText === currentPlayer.Name) {
-    return;
-  }
   selectedBox = row;
   selectedBoxIndex = index;
   currentBoxIndex = 0;
+  document.getElementById("targetPlayer").value = selectedBox.id;
   const playerNameDivs = document.querySelectorAll(".player-container");
   playerNameDivs.forEach((div) => {
     div.classList.remove("player-container-clicked");
@@ -114,6 +114,12 @@ function buildSelfPlayerGameView(playerInfo) {
   playerName.className = "self-player-name";
   playerName.innerText = playerInfo.Name || "Unknown";
   playerContainer.appendChild(playerName);
+
+  // Create player score element
+  var playerScore = document.createElement("h2");
+  playerScore.className = "player-score";
+  playerScore.innerText = `(Score ${playerInfo.Score})`;
+  playerContainer.appendChild(playerScore);
 
   // Create letters container
   var lettersContainer = document.createElement("div");
@@ -226,16 +232,22 @@ function buildPlayerLobbyView(playerInfo) {
 
 function attachEventListeners() {
   playerNameDivs = document.querySelectorAll(".player-container");
+  console.log(playerNameDivs);
   playerNameDivs.forEach((div, index) => {
     div.addEventListener("click", function (event) {
-      event.stopPropagation(); // Prevent the document click event from firing
+      event.stopPropagation();
       playerRowClicked(div, index);
     });
   });
 
-  document.addEventListener("click", function () {
-    playerNameDivs.forEach((div) => {
-      div.classList.remove("player-container-clicked");
+  document.body.addEventListener("htmx:wsAfterMessage", function (event) {
+    playerNameDivs = document.querySelectorAll(".player-container");
+    console.log(playerNameDivs);
+    playerNameDivs.forEach((div, index) => {
+      div.addEventListener("click", function (event) {
+        event.stopPropagation();
+        playerRowClicked(div, index);
+      });
     });
   });
 
@@ -250,4 +262,8 @@ function removeEventListeners() {
   //       playerRowClicked(div, index);
   //     });
   //   });
+}
+
+function resetPointer() {
+  currentBoxIndex = 0;
 }

@@ -166,7 +166,9 @@ html, body {
     min-width: 20%;
     background-color: #888888;
     border: none;
-    border-radius: 5px;
+    padding: 10px;
+    border-radius: 10px;
+    margin-top: 20px;
     cursor: pointer;
 }
 
@@ -207,19 +209,12 @@ html, body {
     color: #74e880;
 }
 
-.player-list {
-    margin-top: 20px;
-}
-
-
-.player-list-item {
-    margin-bottom: 5px;
-}
 
 .lobby-container {
     display: flex;
     flex-direction: column;
     align-items: center;
+    width: 95vw;
     padding: 20px;
 }
 
@@ -243,7 +238,40 @@ html, body {
 }
 
 .player-list {
-    text-align: center;
+    margin-top: 0px;
+}
+.lobby-player-container {
+    margin-top: 20px;
+    display: flex;
+    align-items: start;
+    justify-content: start;
+    flex-direction: column;
+    width: 30%;
+}
+
+.lobby-letter-container {
+    display: flex;
+    flex-direction: row;
+}
+
+.lobby-player {
+    font-size: 24px;
+    margin-top: 10px;
+    margin-bottom: 5px;
+}
+
+.lobby-letter {
+    width: 30px;
+    height: 40px;
+    background-color: #525252;
+    margin-right: 5px; 
+}
+
+.lobby-letter-ready {
+    width: 30px;
+    height: 40px;
+    background-color: #4CAF50;
+    margin-right: 5px; 
 }
 
 .guess-results-container {
@@ -265,7 +293,7 @@ html, body {
 }
 
 .center-button {
-    width: 99%;
+    width: 100vw;
     display:flex;
     justify-content: center;
     align-items: center;
@@ -277,19 +305,21 @@ html, body {
     align-items: center;
     font-size: 24px; 
     text-align: center;
-    color: #888888;
+    color: #ffffff;
+    background-color: #4a32a8;
     max-width: 100vw;
     overflow-x: hidden;
-    background-color: transparent;
-    border: 2px solid #888888;
-    border-radius: 5px;
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
     cursor: pointer;
-    min-height: 50px;
+    min-height: 60px;
     z-index: 3;
     position: fixed;
     bottom: 0px;
     left: 0;
     right: 0;
+    border: none;
+    box-shadow: none;
 }
 
 .send-word-button {
@@ -364,22 +394,21 @@ html, body {
 
 .player-container {
     display: flex;
-    flex-direction: row; 
+    flex-direction: column; 
     align-items: center;
     flex-grow: 1;
     padding: 20px;
-    width: 600px;
     position:relative;
 
 }
 
 .self-player-container {
-    position: relative;
     display: flex;
-    flex-direction: row; 
+    flex-direction: column; 
     align-items: center;
+    flex-grow: 1;
     padding: 20px;
-    width: 600px;
+    position:relative;
 }
 
 .player-hidden-input {
@@ -441,22 +470,20 @@ html, body {
     display: flex;
     border-radius: 4px;
     font-weight: bold;
+    margin-top: 0;
+    margin-bottom: 5px;
     color: #ffffff;
-    text-align: center; /* Center text */
-    
-    width: 100px;
-    max-width: 100px;
+    justify-content: center;
 }
 
 .player-name {
     display: flex;
     border-radius: 4px;
     font-weight: bold;
+    margin-top: 0;
+    margin-bottom: 5px;
     color: #888888;
-    text-align: center; /* Center text */
-    
-    width: 150px;
-    max-width: 150px;
+    justify-content: center; 
 }
 
 .player-score {

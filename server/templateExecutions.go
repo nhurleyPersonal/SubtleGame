@@ -58,7 +58,7 @@ func SendGuessResults(client *Client, targetPlayerID string, lettersMapped []Let
 }
 
 // Need name because the entire div needs to be replaced, so need to know target name as well
-func SendCorrectGuess(client *Client, targetPlayerID string, targetPlayerName string, guess string) bool {
+func SendCorrectGuess(client *Client, targetPlayer Player, guess string) bool {
 	correctTmpl, err := template.ParseFiles("server/templates/correctGuessCard.html")
 	if err != nil {
 		log.Println("template parse error:", err)
@@ -67,13 +67,15 @@ func SendCorrectGuess(client *Client, targetPlayerID string, targetPlayerName st
 
 	var correctTpl bytes.Buffer
 	correctData := struct {
-		Name string
-		ID   string
-		Word string
+		Name  string
+		Score int
+		ID    string
+		Word  string
 	}{
-		Name: targetPlayerName,
-		ID:   targetPlayerID,
-		Word: guess,
+		Name:  targetPlayer.Name,
+		Score: targetPlayer.Score,
+		ID:    targetPlayer.ID,
+		Word:  guess,
 	}
 
 	if err := correctTmpl.Execute(&correctTpl, correctData); err != nil {
@@ -148,6 +150,32 @@ func SendLobbyPlayerReady(client *Client, readyPlayerName string) bool {
 	}
 
 	client.sendhtml <- tpl.String()
+
+	return true
+}
+
+func BroadcastScoreUpdate(hub *Hub, playerID string, score int) bool {
+	tmpl, err := template.ParseFiles("server/templates/scoreIncrease.html")
+	if err != nil {
+		log.Println("template parse error:", err)
+		return false
+	}
+
+	var tpl bytes.Buffer
+	data := struct {
+		ID    string
+		Score int
+	}{
+		ID:    playerID,
+		Score: score,
+	}
+
+	if err := tmpl.Execute(&tpl, data); err != nil {
+		log.Println("template execute error:", err)
+		return false
+	}
+
+	hub.broadcasthtml <- tpl.String()
 
 	return true
 }

@@ -47,6 +47,7 @@ func (gs *GameState) NewPlayer(name string) Player {
 		Name:        name,
 		Leader:      false,
 		Ready:       false,
+		Score:       0,
 		Guesses:     make(map[string][]string), // Initialize Guesses map
 		HasFinished: make(map[string]bool),     // Initialize HasFinished map
 	}
@@ -232,7 +233,7 @@ func (gs *GameState) GuessWord(word string, selfPlayerID string, targetPlayerID 
 	}
 
 	if len(completelyCorrect) == len(targetWord) {
-		selfPlayer.Score += 1
+		selfPlayer.Score += 1000 - ((len(selfPlayer.Guesses[targetPlayer.ID]) - 1) * 100)
 		selfPlayer.HasFinished[targetPlayerID] = true
 	}
 

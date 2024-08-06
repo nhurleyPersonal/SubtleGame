@@ -94,15 +94,17 @@ func handleStartGame(hub *Hub, client *Client, msg JSONMessage) {
 
 		var tpl bytes.Buffer
 		tplData := struct {
-			SelfPlayerName string
-			SelfPlayerID   string
-			Word           string
-			OtherPlayers   []Player
+			SelfPlayerName  string
+			SelfPlayerID    string
+			SelfPlayerScore int
+			Word            string
+			OtherPlayers    []Player
 		}{
-			SelfPlayerName: clientPlayer.Name,
-			SelfPlayerID:   clientPlayer.ID,
-			Word:           clientPlayer.Word,
-			OtherPlayers:   playerList,
+			SelfPlayerName:  clientPlayer.Name,
+			SelfPlayerID:    clientPlayer.ID,
+			SelfPlayerScore: clientPlayer.Score,
+			Word:            clientPlayer.Word,
+			OtherPlayers:    playerList,
 		}
 
 		if err := gameroomTmpl.Execute(&tpl, tplData); err != nil {
@@ -217,10 +219,12 @@ func handleGuessWord(hub *Hub, client *Client, msg JSONMessage) {
 		return
 	}
 
+	guessingPlayer := hub.gameState.Players[client.player.ID]
 	// Execute correct guess template if its a correct guess
 	if len(completelyCorrect) == len(guess) {
-		targetPlayerName := hub.gameState.Players[targetPlayer].Name
-		ok = SendCorrectGuess(client, targetPlayer, targetPlayerName, guess)
+		BroadcastScoreUpdate(hub, guessingPlayer.ID, guessingPlayer.Score)
+		targetPlayerObj := hub.gameState.Players[targetPlayer]
+		ok = SendCorrectGuess(client, targetPlayerObj, guess)
 		if !ok {
 			client.send <- Message{
 				Type: "invalidGuess",

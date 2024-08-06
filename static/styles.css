@@ -470,17 +470,18 @@ html, body {
     display: flex;
     border-radius: 4px;
     font-weight: bold;
+    margin-top: 0;
+    margin-bottom: 5px;
     color: #ffffff;
-    text-align: center; /* Center text */
-    
-    width: 100px;
-    max-width: 100px;
+    justify-content: center;
 }
 
 .player-name {
     display: flex;
     border-radius: 4px;
     font-weight: bold;
+    margin-top: 0;
+    margin-bottom: 5px;
     color: #888888;
     justify-content: center; 
 }

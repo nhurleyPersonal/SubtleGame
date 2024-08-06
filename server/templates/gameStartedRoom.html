@@ -20,6 +20,7 @@
     {{range .OtherPlayers}}
         {{if ne .Name $.SelfPlayerName}}
             <div id="id-{{.ID}}" class="player-container">
+                <input id="self-hidden-input-{{.ID}}" type="text" class="player-hidden-input">
                 <h2 id="player-name-{{.Name}}" class="player-name">{{.Name}}</h2>
                 <h2 id="player-score-{{.ID}}" class="player-name">(Score {{.Score}})</h2>
                 <div class="letters-container" id="letters-container-typable-{{.ID}}">

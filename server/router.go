@@ -66,7 +66,7 @@ func gameLobbyHandler(w http.ResponseWriter, r *http.Request) {
 	lobbyID := r.URL.Query().Get("lobbyID")
 	playerName := r.URL.Query().Get("name")
 
-	WsURL := "ws://" + r.Host + "/youmayenter?lobbyID=" + lobbyID + "&name=" + playerName
+	WsURL := "wss://" + r.Host + "/youmayenter?lobbyID=" + lobbyID + "&name=" + playerName
 
 	tmpl, err := template.ParseFiles("server/templates/gameroom.html")
 	if err != nil {

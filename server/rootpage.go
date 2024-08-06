@@ -19,7 +19,7 @@ var RootTemplRaw = `<!DOCTYPE html>
         }
     </style>
 </head>
-<body hx-ext="ws" ws-connect="ws://{{.Host}}/startGame">
+<body hx-ext="ws" ws-connect="wss://{{.Host}}/startGame">
     <h1>HTMX WebSocket Example</h1>
     {{with .Players}}
 	<input type="text" id="playername" placeholder="Enter your name">

@@ -1,11 +1,14 @@
 package server
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
+	"html/template"
 	"log"
 	"os"
 	"strconv"
+	"strings"
 
 	"github.com/gorilla/websocket"
 )
@@ -19,6 +22,7 @@ type SendPlayerInfoMessage struct {
 type Client struct {
 	conn       *websocket.Conn
 	send       chan Message
+	sendhtml   chan string
 	sendJSON   chan JSONMessage
 	playerName string
 	playerID   string
@@ -26,8 +30,9 @@ type Client struct {
 }
 
 type JSONMessage struct {
-	Type string          `json:"type"`
-	Body json.RawMessage `json:"body"`
+	Type    string          `json:"type"`
+	Body    json.RawMessage `json:"body"`
+	Headers json.RawMessage `json:"HEADERS"`
 }
 
 var messageHandlers = map[string]func(*Hub, *Client, JSONMessage){
@@ -67,109 +72,240 @@ func handleJoinGame(hub *Hub, client *Client, msg JSONMessage) {
 }
 
 func handleStartGame(hub *Hub, client *Client, msg JSONMessage) {
-	body := struct {
-		Leader string `json:"leader"`
-	}{}
-	if err := json.Unmarshal(msg.Body, &body); err != nil {
-		log.Println("unmarshal error:", err)
-		return
+
+	playerList := make([]Player, 0)
+
+	for c, _ := range hub.clients {
+		log.Println("CLIENT", c)
+		playerList = append(playerList, c.player)
 	}
-	if body.Leader == "leader" {
-		didStart := hub.gameState.StartGame()
-		if didStart {
-			playersJSON, err := json.Marshal(hub.gameState.GetPlayers())
-			if err != nil {
-				log.Println("error marshalling players:", err)
-				return
-			}
-			hub.broadcastJSON <- JSONMessage{
-				Type: "gameStarted",
-				Body: json.RawMessage(playersJSON),
-			}
-			log.Println("GAME STARTED")
+
+	log.Println(playerList)
+
+	for c := range hub.clients {
+		clientPlayer := c.player
+
+		// Execute the self player template
+		gameroomTmpl, err := template.ParseFiles("server/templates/gameStartedRoom.html")
+		if err != nil {
+			log.Println("template parse error:", err)
+			return
 		}
-	} else {
-		client.send <- Message{
-			Type: "invalidLeader",
+
+		var tpl bytes.Buffer
+		tplData := struct {
+			SelfPlayerName string
+			SelfPlayerID   string
+			Word           string
+			OtherPlayers   []Player
+		}{
+			SelfPlayerName: clientPlayer.Name,
+			SelfPlayerID:   clientPlayer.ID,
+			Word:           clientPlayer.Word,
+			OtherPlayers:   playerList,
 		}
+
+		if err := gameroomTmpl.Execute(&tpl, tplData); err != nil {
+			log.Println("template execute error:", err)
+			return
+		}
+
+		c.sendhtml <- tpl.String()
 	}
 
 }
 
 func handleSetWord(hub *Hub, client *Client, msg JSONMessage) {
-	body := struct {
-		Word string `json:"word"`
-	}{}
-	if err := json.Unmarshal(msg.Body, &body); err != nil {
+	word := ""
+
+	if err := json.Unmarshal(msg.Body, &word); err != nil {
 		log.Println("unmarshal error:", err)
 		return
 	}
-	err := hub.gameState.SetWord(&client.player, body.Word)
+
+	err := hub.gameState.SetWord(&client.player, word)
 	if err != nil {
 		client.send <- Message{
 			Type: "invalidWord",
 		}
 		return
 	}
-	hub.broadcastJSON <- JSONMessage{
-		Type: "wordSet",
-		Body: json.RawMessage(fmt.Sprintf(`{"player": %s}`, strconv.Quote(client.player.Name))),
+	// hub.broadcastJSON <- JSONMessage{
+	// 	Type: "wordSet",
+	// 	Body: json.RawMessage(fmt.Sprintf(`{"player": %s}`, strconv.Quote(client.player.Name))),
+	// }
+
+	// Execute the self player template
+	tmpl, err := template.ParseFiles("server/templates/readyPlayerName.html")
+	if err != nil {
+		log.Println("template parse error:", err)
+		return
 	}
+
+	var tpl bytes.Buffer
+	data := struct {
+		PlayerName string
+	}{
+		PlayerName: client.player.Name,
+	}
+
+	if err := tmpl.Execute(&tpl, data); err != nil {
+		log.Println("template execute error:", err)
+		return
+	}
+
+	// Execute the broadcast to all players
+	readyBroadcastTmpl, err := template.ParseFiles("server/templates/playerReadyLobby.html")
+	if err != nil {
+		log.Println("template parse error:", err)
+		return
+	}
+
+	var tplBroadcast bytes.Buffer
+	dataBroadcast := struct {
+		PlayerName string
+	}{
+		PlayerName: client.player.Name,
+	}
+
+	if err := readyBroadcastTmpl.Execute(&tplBroadcast, dataBroadcast); err != nil {
+		log.Println("template execute error:", err)
+		return
+	}
+
+	client.sendhtml <- tpl.String()
+	hub.broadcasthtml <- tplBroadcast.String()
+
 }
 
 func handleGuessWord(hub *Hub, client *Client, msg JSONMessage) {
-	body := struct {
-		Word     string `json:"word"`
-		SelfID   string `json:"selfName"`
-		TargetID string `json:"targetName"`
-	}{}
+	var body []string
 	if err := json.Unmarshal(msg.Body, &body); err != nil {
 		log.Println("unmarshal error:", err)
 		return
 	}
 
-	completelyCorrect, partiallyCorrect, ok := hub.gameState.GuessWord(body.Word, body.SelfID, body.TargetID)
+	if len(body) != 2 {
+		log.Println("invalid body length")
+		return
+	}
+
+	guess := body[0]
+	targetPlayer := strings.TrimPrefix(body[1], "id-")
+
+	type letterAndClass struct {
+		Letter string
+		Class  string
+	}
+	lettersMapped := make([]letterAndClass, 0, len(guess))
+
+	completelyCorrect, partiallyCorrect, ok := hub.gameState.GuessWord(guess, client.player.ID, targetPlayer)
 	if !ok {
 		client.send <- Message{
-			Type: "invalidGord",
+			Type: "invalidGuess",
 		}
 		return
 	}
 
-	if body.Word == hub.gameState.Players[body.TargetID].Word {
-		client.send <- Message{
-			Type: "correctWord",
+	// Execute correct guess template if its a correct guess
+	if len(completelyCorrect) == len(guess) {
+
+		targetPlayerName := hub.gameState.Players[targetPlayer].Name
+		correctTmpl, err := template.ParseFiles("server/templates/correctGuessCard.html")
+		if err != nil {
+			log.Println("template parse error:", err)
+			return
 		}
-		hub.broadcastJSON <- JSONMessage{
-			Type: "correctWord",
-			Body: json.RawMessage(fmt.Sprintf(`{"player": %s}`, strconv.Quote(body.SelfID))),
+
+		var correctTpl bytes.Buffer
+		correctData := struct {
+			Name string
+			ID   string
+			Word string
+		}{
+			Name: targetPlayerName,
+			ID:   targetPlayer,
+			Word: guess,
 		}
+
+		if err := correctTmpl.Execute(&correctTpl, correctData); err != nil {
+			log.Println("template execute error:", err)
+			return
+		}
+
+		client.sendhtml <- correctTpl.String()
+
 		return
 	}
 
-	client.send <- Message{
-		Type: "guessResults",
-		Body: fmt.Sprintf(`{"completelyCorrect": %s, "partiallyCorrect": %s}`,
-			marshalList(completelyCorrect), marshalList(partiallyCorrect)),
-	}
-}
+	// if not completely correct map the correct/partially correct letters to template
+	for i := 0; i < len(guess); i++ {
+		letter := string(guess[i])
+		class := ""
 
-func marshalList(list interface{}) string {
-	jsonData, err := json.Marshal(list)
+		if len(completelyCorrect) > 0 {
+			for _, num := range completelyCorrect {
+				if i == num {
+					class = "letter-correct"
+				}
+			}
+		}
+
+		if len(partiallyCorrect) > 0 {
+			for _, num := range partiallyCorrect {
+				if i == num {
+					class = "letter-partially-correct"
+				}
+			}
+		}
+
+		lettersMapped = append(lettersMapped, letterAndClass{letter, class})
+	}
+
+	// Send the guess Results
+	tmpl, err := template.ParseFiles("server/templates/guessResults.html")
 	if err != nil {
-		log.Println("marshal error:", err)
-		return "[]"
+		log.Println("template parse error:", err)
+		return
 	}
-	return string(jsonData)
-}
 
-func handleIndexPage(client *Client, msg Message) {
-	// Send a message back to the client to navigate to the game lobby
-	response := JSONMessage{
-		Type: "navigate",
-		Body: json.RawMessage(`{"url": "/index.html"}`),
+	var tpl bytes.Buffer
+	data := struct {
+		TargetPlayerID string
+		LetterResults  []letterAndClass
+	}{
+		TargetPlayerID: targetPlayer,
+		LetterResults:  lettersMapped,
 	}
-	client.sendJSON <- response
+
+	if err := tmpl.Execute(&tpl, data); err != nil {
+		log.Println("template execute error:", err)
+		return
+	}
+
+	client.sendhtml <- tpl.String()
+
+	// Reset the input container
+	resetTmpl, err := template.ParseFiles("server/templates/resetPlayerCard.html")
+	if err != nil {
+		log.Println("template parse error:", err)
+		return
+	}
+
+	var resetTpl bytes.Buffer
+	resetData := struct {
+		ID string
+	}{
+		ID: targetPlayer,
+	}
+
+	if err := resetTmpl.Execute(&resetTpl, resetData); err != nil {
+		log.Println("template execute error:", err)
+		return
+	}
+
+	client.sendhtml <- resetTpl.String()
+
 }
 
 func handleShowPage(client *Client, msg JSONMessage) {
@@ -210,9 +346,12 @@ func (c *Client) ReadPump(hub *Hub) {
 			log.Println("unmarshal error:", err)
 			continue // Continue to the next iteration on error
 		}
+		msgStr := string(message)
+		log.Println(msgStr) // Changed to log.Println
 		if handler, found := messageHandlers[msgJSON.Type]; found {
 			handler(hub, c, msgJSON)
 		} else {
+
 			log.Printf("Unhandled message type: %s", msg.Type)
 		}
 	}
@@ -231,6 +370,11 @@ func (c *Client) WritePump(hub *Hub) {
 			}
 		case msg := <-c.sendJSON:
 			if err := c.conn.WriteJSON(msg); err != nil {
+				log.Println("write error:", err)
+				return
+			}
+		case msg := <-c.sendhtml:
+			if err := c.conn.WriteMessage(websocket.TextMessage, []byte(msg)); err != nil {
 				log.Println("write error:", err)
 				return
 			}

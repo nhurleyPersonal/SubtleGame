@@ -207,14 +207,6 @@ html, body {
     color: #74e880;
 }
 
-.player-list {
-    margin-top: 20px;
-}
-
-
-.player-list-item {
-    margin-bottom: 5px;
-}
 
 .lobby-container {
     display: flex;
@@ -243,7 +235,42 @@ html, body {
 }
 
 .player-list {
-    text-align: center;
+    margin-left: 40px;
+    width: 100%;
+    margin-top: 20px;
+}
+.lobby-player-container {
+    margin-top: 20px;
+    display: flex;
+    align-items: start;
+    justify-content: start;
+    flex-direction: column;
+    width: 30%;
+}
+
+.lobby-letter-container {
+    display: flex;
+    flex-direction: row;
+}
+
+.lobby-player {
+    font-size: 24px;
+    margin-top: 10px;
+    margin-bottom: 5px;
+}
+
+.lobby-letter {
+    width: 30px;
+    height: 40px;
+    background-color: #525252;
+    margin-right: 5px; 
+}
+
+.lobby-letter-ready {
+    width: 30px;
+    height: 40px;
+    background-color: #4CAF50;
+    margin-right: 5px; 
 }
 
 .guess-results-container {

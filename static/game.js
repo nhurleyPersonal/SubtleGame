@@ -1,14 +1,18 @@
 let round = 0;
 let inputWord = "";
 
-function joinGame(name, serverID) {
-  fetch("/gamelobby", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ name: name }),
-  })
+function joinGame(name, lobbyID) {
+  fetch(
+    `/gamelobby?lobbyID=${encodeURIComponent(
+      lobbyID
+    )}&name=${encodeURIComponent(name)}`,
+    {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    }
+  )
     .then((response) => {
       if (response.ok) {
         return response.text(); // Get the HTML content
@@ -17,10 +21,10 @@ function joinGame(name, serverID) {
       }
     })
     .then((html) => {
+      console.log(html);
       if (html) {
-        document.body.innerHTML = html; // Write the HTML content to the DOM
-        writeGameView("lobbyview");
-        joinGameServer(name, serverID); // Reinitialize the WebSocket connection
+        document.body.innerHTML = html;
+        htmx.process(document.body);
         attachEventListeners();
         selectPlayer();
       }

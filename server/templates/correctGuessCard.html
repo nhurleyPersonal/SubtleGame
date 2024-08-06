@@ -1,0 +1,10 @@
+<div id="id-{{.ID}}" class="self-player-container" hx-swap="outerHTML">
+    <h2 id="player-name-{{.Name}}" class="player-name">{{.Name}}</h2>
+    <div class="letters-container" id="letters-container-{{.ID}}">
+        <div class="letter letter-correct">{{printf "%c" (index .Word 0)}}</div>
+        <div class="letter letter-correct">{{printf "%c" (index .Word 1)}}</div>
+        <div class="letter letter-correct">{{printf "%c" (index .Word 2)}}</div>
+        <div class="letter letter-correct">{{printf "%c" (index .Word 3)}}</div>
+        <div class="letter letter-correct">{{printf "%c" (index .Word 4)}}</div>
+    </div>
+</div>

@@ -75,16 +75,6 @@ func (gs *GameState) StartGame() bool {
 func (gs *GameState) SetWord(player *Player, word string) error {
 	gs.mu.Lock()
 	defer gs.mu.Unlock()
-	// Check spelling of a word
-	// sc, err := spellcheck.New()
-	// if err != nil {
-	// 	fmt.Println(err)
-	// }
-
-	// ok := sc.SearchDirect(strings.ToLower(word))
-	// if !ok {
-	// 	return errors.New("noword")
-	// }
 	player.Word = word
 	player.Ready = true
 	gs.Players[player.ID] = *player
@@ -186,8 +176,6 @@ func (gs *GameState) GuessWord(word string, selfPlayerID string, targetPlayerID 
 	gs.mu.Lock()
 	defer gs.mu.Unlock()
 
-	log.Println("CALLED")
-
 	selfPlayer, ok := gs.Players[selfPlayerID]
 	if !ok {
 		return nil, nil, false
@@ -211,6 +199,7 @@ func (gs *GameState) GuessWord(word string, selfPlayerID string, targetPlayerID 
 	if _, ok := selfPlayer.Guesses[targetPlayer.ID]; !ok {
 		selfPlayer.Guesses[targetPlayer.ID] = []string{}
 	}
+
 	selfPlayer.Guesses[targetPlayer.ID] = append(selfPlayer.Guesses[targetPlayer.ID], word)
 	targetWord := targetPlayer.Word
 	var rebuiltTarget = targetWord
@@ -243,6 +232,8 @@ func (gs *GameState) GuessWord(word string, selfPlayerID string, targetPlayerID 
 
 	gs.Players[selfPlayerID] = selfPlayer
 	gs.Players[targetPlayerID] = targetPlayer
+
+	log.Println("RESULTS", word, targetWord, completelyCorrect, partiallyCorrect)
 
 	return completelyCorrect, partiallyCorrect, true
 }

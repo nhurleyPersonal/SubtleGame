@@ -1,7 +1,6 @@
 package server
 
 import (
-	"encoding/json"
 	"errors"
 	"html/template"
 	"log"
@@ -11,19 +10,14 @@ import (
 )
 
 func connectionHandler(w http.ResponseWriter, r *http.Request) {
-	log.Println("HERE", r.URL)
-	serverID := r.URL.Query().Get("serverID")
-	playerID := r.URL.Query().Get("playerID")
-	log.Println(serverID, playerID)
-	hub, ok := hubMultiplexer.hubs[serverID]
-	if !ok {
-		log.Println("Hub not found")
-		return
-	}
+	log.Println("HERE 4", r.URL)
+	lobbyID := r.URL.Query().Get("lobbyID")
+	playerName := r.URL.Query().Get("name")
+	log.Println(lobbyID, playerName)
 
 	// Check if the request is a WebSocket upgrade request
 	if websocket.IsWebSocketUpgrade(r) {
-		err := clientJoinsLobby(w, r, hub, playerID)
+		err := clientJoinsLobby(w, r, lobbyID, playerName)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
@@ -31,21 +25,23 @@ func connectionHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func clientJoinsLobby(w http.ResponseWriter, r *http.Request, hub *Hub, playerID string) error {
-	log.Println("UPGRDING")
-	log.Println(playerID)
+func clientJoinsLobby(w http.ResponseWriter, r *http.Request, lobbyID string, playerName string) error {
 	ws, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		log.Println("connection error:", err)
 		return errors.New("connection error")
 	}
 
-	client := &Client{conn: ws, send: make(chan Message, 256), sendJSON: make(chan JSONMessage, 256)} // Increase buffer size
-
-	if playerID != "" {
-		client.playerID = playerID
-		hub.reconnect <- client
+	hub, ok := hubMultiplexer.hubs[lobbyID]
+	if !ok {
+		log.Println("Hub not found")
+		return errors.New("hub not found")
 	}
+
+	client := &Client{conn: ws, send: make(chan Message, 256), sendJSON: make(chan JSONMessage, 256), sendhtml: make(chan string, 256)}
+	client.playerName = playerName
+
+	hub.register <- client
 
 	go client.ReadPump(hub)
 	go client.WritePump(hub)
@@ -67,26 +63,24 @@ func rootHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func gameLobbyHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method == http.MethodPost {
-		var data struct {
-			Name string `json:"name"`
-		}
-		err := json.NewDecoder(r.Body).Decode(&data)
-		if err != nil {
-			http.Error(w, "Invalid request payload", http.StatusBadRequest)
-			return
-		}
-		// Use the name value as needed
-	}
+	lobbyID := r.URL.Query().Get("lobbyID")
+	playerName := r.URL.Query().Get("name")
 
-	tmpl, err := template.ParseFiles("static/gamelobby.html")
+	WsURL := "ws://" + r.Host + "/youmayenter?lobbyID=" + lobbyID + "&name=" + playerName
+
+	tmpl, err := template.ParseFiles("server/templates/gameroom.html")
 	if err != nil {
 		http.Error(w, "Could not load template", http.StatusInternalServerError)
 		return
 	}
-	tmpl.Execute(w, nil)
-
-	connectionHandler(w, r)
+	data := struct {
+		WsURL      string
+		PlayerName string
+	}{
+		WsURL:      WsURL,
+		PlayerName: playerName,
+	}
+	tmpl.Execute(w, data)
 }
 
 func createLobbyHandler(w http.ResponseWriter, r *http.Request) {
@@ -102,6 +96,7 @@ func Router() {
 	http.HandleFunc("/favicon.ico", faviconHandler)
 	http.HandleFunc("/createServer", createLobbyHandler)
 	http.HandleFunc("/gamelobby", gameLobbyHandler)
+	http.HandleFunc("/youmayenter", connectionHandler)
 	fs := http.FileServer(http.Dir("static"))
 	http.Handle("/static/", http.StripPrefix("/static/", fs))
 

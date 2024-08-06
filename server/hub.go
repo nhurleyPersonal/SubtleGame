@@ -1,9 +1,7 @@
 package server
 
 import (
-	"bytes"
 	"encoding/json"
-	"html/template"
 	"log"
 	"math/rand"
 	"sync"
@@ -144,56 +142,21 @@ func (h *Hub) run() {
 				return
 			}
 
-			// Load and execute the player name update template
-			tmplBroadcast, err := template.ParseFiles("server/templates/playerJoinsLobby.html")
-			if err != nil {
-				log.Println("template parse error:", err)
-				return
-			}
-
-			// Load and execute the player name update template
-			tmplBroadcastReady, err := template.ParseFiles("server/templates/playerReadyLobby.html")
-			if err != nil {
-				log.Println("template parse error:", err)
-				return
-			}
-
-			var tplBroadcastSelf bytes.Buffer
-			dataSelf := struct {
-				PlayerName string
-			}{
-				PlayerName: client.player.Name,
-			}
-
-			if err := tmplBroadcast.Execute(&tplBroadcastSelf, dataSelf); err != nil {
-				log.Println("template execute error:", err)
-				return
-			}
-
-			for c := range h.clients {
-				if c != client {
-					var tplBroadcastOther bytes.Buffer
-					dataOther := struct {
-						PlayerName string
-					}{
-						PlayerName: c.player.Name,
-					}
-
-					if c.player.Ready {
-						if err := tmplBroadcastReady.Execute(&tplBroadcastOther, dataOther); err != nil {
-							log.Println("template execute error:", err)
-							return
-						}
-					} else {
-						if err := tmplBroadcast.Execute(&tplBroadcastOther, dataOther); err != nil {
-							log.Println("template execute error:", err)
-							return
-						}
-					}
-
-					client.sendhtml <- tplBroadcastOther.String()
-					c.sendhtml <- tplBroadcastSelf.String()
+			// Send all other player info to registering client
+			// Send registering client info to all other players as well
+			for cOther := range h.clients {
+				if cOther == client {
+					continue
 				}
+
+				cPlayer := h.gameState.Players[cOther.player.ID]
+				SendPlayerJoinLobby(client, cOther.player.Name)
+
+				if cPlayer.Ready {
+					SendLobbyPlayerReady(client, cOther.player.Name)
+				}
+
+				SendPlayerJoinLobby(cOther, client.player.Name)
 			}
 
 			h.mu.Unlock() // Release the lock

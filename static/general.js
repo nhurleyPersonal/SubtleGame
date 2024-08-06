@@ -23,13 +23,6 @@ function handleKeydown(event) {
     });
     document.getElementById("letters-value").value = inputVal;
 
-    // Remove highlight from the current box
-
-    if (currentBoxIndex === letterBoxes.length - 1) {
-      sendButton = document.querySelector(".send-word-button-container");
-      sendButton.classList.add("send-word-button-ready");
-    }
-
     if (currentBoxIndex < letterBoxes.length - 1) {
       letterBoxes[currentBoxIndex].classList.remove("letter-highlight");
       currentBoxIndex = currentBoxIndex + 1;

@@ -200,6 +200,12 @@ func (gs *GameState) GuessWord(word string, selfPlayerID string, targetPlayerID 
 		selfPlayer.Guesses[targetPlayer.ID] = []string{}
 	}
 
+	for _, guess := range selfPlayer.Guesses[targetPlayer.ID] {
+		if word == guess {
+			return nil, nil, false
+		}
+	}
+
 	selfPlayer.Guesses[targetPlayer.ID] = append(selfPlayer.Guesses[targetPlayer.ID], word)
 	targetWord := targetPlayer.Word
 	var rebuiltTarget = targetWord
@@ -232,8 +238,6 @@ func (gs *GameState) GuessWord(word string, selfPlayerID string, targetPlayerID 
 
 	gs.Players[selfPlayerID] = selfPlayer
 	gs.Players[targetPlayerID] = targetPlayer
-
-	log.Println("RESULTS", word, targetWord, completelyCorrect, partiallyCorrect)
 
 	return completelyCorrect, partiallyCorrect, true
 }

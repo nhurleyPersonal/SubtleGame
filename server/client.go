@@ -130,10 +130,19 @@ func handleSetWord(hub *Hub, client *Client, msg JSONMessage) {
 		}
 		return
 	}
-	// hub.broadcastJSON <- JSONMessage{
-	// 	Type: "wordSet",
-	// 	Body: json.RawMessage(fmt.Sprintf(`{"player": %s}`, strconv.Quote(client.player.Name))),
-	// }
+
+	everyoneReady := true
+
+	for _, pReady := range hub.gameState.Players {
+		log.Println("ISREADY", pReady.Name, pReady.Ready)
+		if !pReady.Ready {
+			everyoneReady = false
+		}
+	}
+
+	if everyoneReady {
+		UpdateStartButton(hub)
+	}
 
 	// Execute the self player template
 	tmpl, err := template.ParseFiles("server/templates/readyPlayerName.html")
@@ -178,6 +187,11 @@ func handleSetWord(hub *Hub, client *Client, msg JSONMessage) {
 
 }
 
+type LetterAndClass struct {
+	Letter string
+	Class  string
+}
+
 func handleGuessWord(hub *Hub, client *Client, msg JSONMessage) {
 	var body []string
 	if err := json.Unmarshal(msg.Body, &body); err != nil {
@@ -193,11 +207,7 @@ func handleGuessWord(hub *Hub, client *Client, msg JSONMessage) {
 	guess := body[0]
 	targetPlayer := strings.TrimPrefix(body[1], "id-")
 
-	type letterAndClass struct {
-		Letter string
-		Class  string
-	}
-	lettersMapped := make([]letterAndClass, 0, len(guess))
+	lettersMapped := make([]LetterAndClass, 0, len(guess))
 
 	completelyCorrect, partiallyCorrect, ok := hub.gameState.GuessWord(guess, client.player.ID, targetPlayer)
 	if !ok {
@@ -209,32 +219,14 @@ func handleGuessWord(hub *Hub, client *Client, msg JSONMessage) {
 
 	// Execute correct guess template if its a correct guess
 	if len(completelyCorrect) == len(guess) {
-
 		targetPlayerName := hub.gameState.Players[targetPlayer].Name
-		correctTmpl, err := template.ParseFiles("server/templates/correctGuessCard.html")
-		if err != nil {
-			log.Println("template parse error:", err)
+		ok = SendCorrectGuess(client, targetPlayer, targetPlayerName, guess)
+		if !ok {
+			client.send <- Message{
+				Type: "invalidGuess",
+			}
 			return
 		}
-
-		var correctTpl bytes.Buffer
-		correctData := struct {
-			Name string
-			ID   string
-			Word string
-		}{
-			Name: targetPlayerName,
-			ID:   targetPlayer,
-			Word: guess,
-		}
-
-		if err := correctTmpl.Execute(&correctTpl, correctData); err != nil {
-			log.Println("template execute error:", err)
-			return
-		}
-
-		client.sendhtml <- correctTpl.String()
-
 		return
 	}
 
@@ -259,52 +251,25 @@ func handleGuessWord(hub *Hub, client *Client, msg JSONMessage) {
 			}
 		}
 
-		lettersMapped = append(lettersMapped, letterAndClass{letter, class})
+		lettersMapped = append(lettersMapped, LetterAndClass{letter, class})
 	}
 
-	// Send the guess Results
-	tmpl, err := template.ParseFiles("server/templates/guessResults.html")
-	if err != nil {
-		log.Println("template parse error:", err)
+	ok = SendGuessResults(client, targetPlayer, lettersMapped)
+	if !ok {
+		client.send <- Message{
+			Type: "invalidGuess",
+		}
 		return
 	}
-
-	var tpl bytes.Buffer
-	data := struct {
-		TargetPlayerID string
-		LetterResults  []letterAndClass
-	}{
-		TargetPlayerID: targetPlayer,
-		LetterResults:  lettersMapped,
-	}
-
-	if err := tmpl.Execute(&tpl, data); err != nil {
-		log.Println("template execute error:", err)
-		return
-	}
-
-	client.sendhtml <- tpl.String()
 
 	// Reset the input container
-	resetTmpl, err := template.ParseFiles("server/templates/resetPlayerCard.html")
-	if err != nil {
-		log.Println("template parse error:", err)
+	ok = SendCardReset(client, targetPlayer)
+	if !ok {
+		client.send <- Message{
+			Type: "invalidGuess",
+		}
 		return
 	}
-
-	var resetTpl bytes.Buffer
-	resetData := struct {
-		ID string
-	}{
-		ID: targetPlayer,
-	}
-
-	if err := resetTmpl.Execute(&resetTpl, resetData); err != nil {
-		log.Println("template execute error:", err)
-		return
-	}
-
-	client.sendhtml <- resetTpl.String()
 
 }
 

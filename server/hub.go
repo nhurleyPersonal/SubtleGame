@@ -55,27 +55,6 @@ func (h *Hub) CleanUp(c *Client) {
 		c.conn.Close()
 	}
 
-	log.Println("Attempting Reconnection")
-	// Handle reconnection
-	func() {
-		timeout := time.After(1 * time.Minute)
-		ticker := time.NewTicker(5 * time.Second)
-		defer ticker.Stop()
-
-		for {
-			select {
-			case <-timeout:
-				log.Println("Reconnection attempts timed out")
-				h.mu.Lock()
-				h.gameState.RemovePlayer(c.player)
-				h.mu.Unlock()
-				return
-			case <-ticker.C:
-				return
-			}
-		}
-	}()
-
 	currentPlayers, err := json.Marshal(h.gameState.GetPlayers())
 	if err != nil {
 		log.Println("error marshalling game state:", err)
@@ -108,7 +87,7 @@ func (hm *HubMultiplexer) shutdownHub(hubCode string) {
 
 func (h *Hub) run() {
 	ticker := time.NewTicker(10 * time.Second)
-	shutdownTimer := time.NewTicker(20 * time.Second)
+	shutdownTimer := time.NewTicker(60 * time.Second)
 	defer ticker.Stop()
 	defer shutdownTimer.Stop()
 	for {
@@ -150,32 +129,12 @@ func (h *Hub) run() {
 			h.clients[c] = true
 			log.Println("CLIENT RECONNECT DEETS", c.playerID, c.playerName)
 
-			reconnectPlayer, err := h.gameState.ReconnectPlayer(c, h)
-			if err != nil {
-				log.Println("error joining game:", err)
-				continue
-			}
-			c.player = reconnectPlayer
-
 			log.Println("RECONNECTED PLAYER", c.player.Name)
-
-			playersJSON, err := json.Marshal(h.gameState.GetPlayers())
-			if err != nil {
-				log.Println("error marshalling players:", err)
-				return
-			}
-
-			sendInitalPlayers := Message{
-				Type: "currentPlayers",
-				Body: string(playersJSON),
-			}
-
-			h.broadcastMessage(sendInitalPlayers)
 			h.mu.Unlock() // Release the lock
 
 		case c := <-h.unregister:
 			h.mu.Lock()
-			shutdownTimer.Reset(20 * time.Second)
+			shutdownTimer.Reset(60 * time.Second)
 			h.CleanUp(c)
 			h.mu.Unlock()
 

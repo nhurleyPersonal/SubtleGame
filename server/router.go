@@ -50,6 +50,7 @@ func clientJoinsLobby(w http.ResponseWriter, r *http.Request, lobbyID string, pl
 	if ok {
 		log.Println("FOUND PLAYER", player.Name)
 		client.player = player
+		hub.reconnect <- client
 	} else {
 		log.Println("REGISTERING PLAYER", client.playerName)
 		hub.register <- client

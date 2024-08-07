@@ -7,7 +7,6 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 100vh; /* Full viewport height */
 }
 
 html, body {
@@ -513,6 +512,21 @@ html, body {
 
 .big-spacer {
     height: 60px;
+}
+
+.after-this-bs {
+    display: flex;
+    align-items: center;
+    flex-grow: 1;
+    flex-direction: column;
+    padding: 20px;
+    position: relative;
+}
+
+@media (max-width: 600px) {
+    .after-this-bs {
+        width: 85vw;
+    }
 }
 
 /* Media query for mobile devices */

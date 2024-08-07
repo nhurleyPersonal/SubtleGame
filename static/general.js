@@ -87,6 +87,11 @@ function playerRowClicked(row, index) {
   selectedBox.classList.add("player-container-clicked");
   const lettersContainer = selectedBox.querySelector(".letters-container");
   const letterBoxes = lettersContainer.querySelectorAll(".letter");
+  Array.from(letterBoxes).forEach((letterBox) => {
+    letterBox.classList.remove("letter-filled");
+    letterBox.classList.remove("letter-highlight");
+    letterBox.innerHTML = ""
+  })
   letterBoxes[currentBoxIndex].classList.add("letter-highlight");
 }
 
@@ -241,7 +246,7 @@ function attachEventListeners() {
   });
 
   document.body.addEventListener("htmx:wsAfterMessage", function (event) {
-    htmx.process(document.body)
+    document.body.height = document.body.height + 100
     playerNameDivs = document.querySelectorAll(".player-container");
     playerNameDivs.forEach((div, index) => {
       div.addEventListener("click", function (event) {
@@ -265,5 +270,6 @@ function removeEventListeners() {
 }
 
 function resetPointer() {
+
   currentBoxIndex = 0;
 }

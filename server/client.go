@@ -213,6 +213,7 @@ func handleGuessWord(hub *Hub, client *Client, msg JSONMessage) {
 
 	completelyCorrect, partiallyCorrect, ok := hub.gameState.GuessWord(guess, client.player.ID, targetPlayer)
 	if !ok {
+		SendCardReset(client, targetPlayer)
 		client.send <- Message{
 			Type: "invalidGuess",
 		}

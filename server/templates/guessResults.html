@@ -1,4 +1,4 @@
-<div hx-swap-oob="beforeend:#id-{{.TargetPlayerID}}">
+<div hx-swap-oob="afterbegin:#after-this-{{.TargetPlayerID}}">
     <div class="letters-container">
         {{range .LetterResults}}
             <div class="letter letter-filled {{.Class}}">{{.Letter}}</div>

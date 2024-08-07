@@ -93,9 +93,11 @@ func gameLobbyHandler(w http.ResponseWriter, r *http.Request) {
 	data := struct {
 		WsURL      string
 		PlayerName string
+		LobbyID    string
 	}{
 		WsURL:      WsURL,
 		PlayerName: playerName,
+		LobbyID:    lobbyID,
 	}
 	tmpl.Execute(w, data)
 }

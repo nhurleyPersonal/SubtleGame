@@ -486,6 +486,16 @@ html, body {
     justify-content: center; 
 }
 
+.lobby-code {
+    display: flex;
+    border-radius: 4px;
+    font-weight: bold;
+    margin-top: 0;
+    margin-bottom: 20px;
+    color: #ffffff;
+    justify-content: center;
+}
+
 .player-score {
     display: flex;
     border-radius: 4px;

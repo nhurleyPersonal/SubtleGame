@@ -2,7 +2,7 @@
 <html>
     <head>
         <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
         <title>HTMX WebSocket Example</title>
         <link rel="stylesheet" type="text/css" href="/static/styles.css">
         <script src="https://unpkg.com/htmx.org@1.9.12"></script>
@@ -13,6 +13,7 @@
     <body>
         <div hx-ext="ws" ws-connect="{{.WsURL}}">
             <div id="playing-container" class="lobby-container">
+                <h1 class="lobby-code">Lobby: {{.LobbyID}}</h1>
                 <div id="player-container" class="self-player-container">
                     <input id="self-hidden-input" type="text" class="player-hidden-input">
                     <h2 id="player-name" class="player-name">{{.PlayerName}}</h2>

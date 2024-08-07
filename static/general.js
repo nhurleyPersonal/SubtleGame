@@ -241,8 +241,8 @@ function attachEventListeners() {
   });
 
   document.body.addEventListener("htmx:wsAfterMessage", function (event) {
+    htmx.process(document.body)
     playerNameDivs = document.querySelectorAll(".player-container");
-    console.log(playerNameDivs);
     playerNameDivs.forEach((div, index) => {
       div.addEventListener("click", function (event) {
         event.stopPropagation();

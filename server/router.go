@@ -6,13 +6,14 @@ import (
 	"html/template"
 	"log"
 	"net/http"
+	"strings"
 
 	"github.com/gorilla/websocket"
 )
 
 func connectionHandler(w http.ResponseWriter, r *http.Request) {
 	log.Println("HERE 4", r.URL)
-	lobbyID := r.URL.Query().Get("lobbyID")
+	lobbyID := strings.ToUpper(r.URL.Query().Get("lobbyID"))
 	playerName := r.URL.Query().Get("name")
 	playerID := r.URL.Query().Get("id")
 	log.Println(lobbyID, playerName, playerID)
@@ -76,7 +77,7 @@ func rootHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func gameLobbyHandler(w http.ResponseWriter, r *http.Request) {
-	lobbyID := r.URL.Query().Get("lobbyID")
+	lobbyID := strings.ToUpper(r.URL.Query().Get("lobbyID"))
 	playerName := r.URL.Query().Get("name")
 	playerID := uuid.New().String()
 	wss := "wss://"

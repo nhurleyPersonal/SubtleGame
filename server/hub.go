@@ -118,7 +118,7 @@ func (h *Hub) run() {
 			shutdownTimer.Stop()
 			h.clients[client] = true
 
-			newPlayer, err := h.gameState.JoinGame(client.playerName, client, h)
+			newPlayer, err := h.gameState.JoinGame(client.playerName, client.playerID, client, h)
 			client.player = newPlayer
 			if err != nil {
 				log.Println("error joining game:", err)

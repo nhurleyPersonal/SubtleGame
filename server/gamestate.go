@@ -5,8 +5,6 @@ import (
 	"log"
 	"sync"
 	"time"
-
-	"github.com/google/uuid"
 )
 
 type GameState struct {
@@ -41,9 +39,9 @@ type PassToClientPlayer struct {
 	Leader bool
 }
 
-func (gs *GameState) NewPlayer(name string) Player {
+func (gs *GameState) NewPlayer(name string, ID string) Player {
 	return Player{
-		ID:          uuid.New().String(),
+		ID:          ID,
 		Name:        name,
 		Leader:      false,
 		Ready:       false,
@@ -82,7 +80,7 @@ func (gs *GameState) SetWord(player *Player, word string) error {
 	return nil
 }
 
-func (gs *GameState) JoinGame(name string, c *Client, hub *Hub) (Player, error) {
+func (gs *GameState) JoinGame(name string, playerID string, c *Client, hub *Hub) (Player, error) {
 	gs.mu.Lock()
 	defer gs.mu.Unlock()
 
@@ -94,7 +92,7 @@ func (gs *GameState) JoinGame(name string, c *Client, hub *Hub) (Player, error) 
 		c.send <- failedToJoinMessage
 		return Player{}, errors.New("Lobby is full")
 	}
-	player := gs.NewPlayer(name)
+	player := gs.NewPlayer(name, playerID)
 	gs.Players[player.ID] = player
 	c.player = player
 

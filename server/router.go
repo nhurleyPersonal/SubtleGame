@@ -2,6 +2,7 @@ package server
 
 import (
 	"errors"
+	"github.com/google/uuid"
 	"html/template"
 	"log"
 	"net/http"
@@ -13,11 +14,12 @@ func connectionHandler(w http.ResponseWriter, r *http.Request) {
 	log.Println("HERE 4", r.URL)
 	lobbyID := r.URL.Query().Get("lobbyID")
 	playerName := r.URL.Query().Get("name")
-	log.Println(lobbyID, playerName)
+	playerID := r.URL.Query().Get("id")
+	log.Println(lobbyID, playerName, playerID)
 
 	// Check if the request is a WebSocket upgrade request
 	if websocket.IsWebSocketUpgrade(r) {
-		err := clientJoinsLobby(w, r, lobbyID, playerName)
+		err := clientJoinsLobby(w, r, lobbyID, playerName, playerID)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
@@ -25,9 +27,8 @@ func connectionHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func clientJoinsLobby(w http.ResponseWriter, r *http.Request, lobbyID string, playerName string) error {
+func clientJoinsLobby(w http.ResponseWriter, r *http.Request, lobbyID string, playerName string, playerID string) error {
 
-	log.Println("CONNECTION ATTEMPT", r.URL)
 	ws, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		log.Println("connection error:", err)
@@ -42,8 +43,17 @@ func clientJoinsLobby(w http.ResponseWriter, r *http.Request, lobbyID string, pl
 
 	client := &Client{conn: ws, send: make(chan Message, 256), sendJSON: make(chan JSONMessage, 256), sendhtml: make(chan string, 256)}
 	client.playerName = playerName
+	client.playerID = playerID
 
-	hub.register <- client
+	// Reconnecting logic
+	player, ok := hub.gameState.Players[playerID]
+	if ok {
+		log.Println("FOUND PLAYER", player.Name)
+		client.player = player
+	} else {
+		log.Println("REGISTERING PLAYER", client.playerName)
+		hub.register <- client
+	}
 
 	go client.ReadPump(hub)
 	go client.WritePump(hub)
@@ -67,11 +77,12 @@ func rootHandler(w http.ResponseWriter, r *http.Request) {
 func gameLobbyHandler(w http.ResponseWriter, r *http.Request) {
 	lobbyID := r.URL.Query().Get("lobbyID")
 	playerName := r.URL.Query().Get("name")
+	playerID := uuid.New().String()
 	wss := "wss://"
 	if r.Host == "localhost:8080" {
 		wss = "ws://"
 	}
-	WsURL := wss + r.Host + "/youmayenter?lobbyID=" + lobbyID + "&name=" + playerName
+	WsURL := wss + r.Host + "/youmayenter?lobbyID=" + lobbyID + "&name=" + playerName + "&id=" + playerID
 
 	tmpl, err := template.ParseFiles("server/templates/gameroom.html")
 	if err != nil {

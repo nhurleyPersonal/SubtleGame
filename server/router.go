@@ -26,6 +26,8 @@ func connectionHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func clientJoinsLobby(w http.ResponseWriter, r *http.Request, lobbyID string, playerName string) error {
+
+	log.Println("CONNECTION ATTEMPT", r.URL)
 	ws, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		log.Println("connection error:", err)

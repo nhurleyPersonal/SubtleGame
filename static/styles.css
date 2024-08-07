@@ -497,6 +497,14 @@ html, body {
     max-width: 150px;
 }
 
+.small-spacer {
+    height: 30px;
+}
+
+.big-spacer {
+    height: 60px;
+}
+
 /* Media query for mobile devices */
 @media (max-width: 600px) {
     .player-container {

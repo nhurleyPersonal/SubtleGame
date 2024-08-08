@@ -548,7 +548,11 @@ html, body {
 }
 
 .big-spacer {
-    height: 60px;
+    height: 65px;
+}
+
+.bigger-spacer {
+    height: 120px
 }
 
 .endgame-title {

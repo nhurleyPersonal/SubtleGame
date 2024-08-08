@@ -87,6 +87,7 @@ func handleStartGame(hub *Hub, client *Client, msg JSONMessage) {
 
 	if !canStartGame {
 		SendErrorMessage(client, "Please wait until all players are ready.", "0")
+		return
 	}
 
 	for c := range hub.clients {

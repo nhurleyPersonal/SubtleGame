@@ -24,6 +24,7 @@ var upgrader = websocket.Upgrader{
 }
 
 var hubMultiplexer = NewHubMultiplexer()
+var SpellChecker, _ = spellcheck.New()
 
 // Init spellchecker
 var Spellcheck, _ = spellcheck.New()

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"html/template"
 	"log"
+	"net/http"
 	"sort"
 )
 
@@ -11,6 +12,35 @@ var FuncMap = template.FuncMap{
 	"add": func(a int, b int) int {
 		return a + b
 	},
+}
+
+func SendIntialStartGame(r *http.Request, w http.ResponseWriter, lobbyID string, playerName string, playerID string) bool {
+	wss := "wss://"
+	if r.Host == "localhost:8080" {
+		wss = "ws://"
+	}
+	WsURL := wss + r.Host + "/youmayenter?lobbyID=" + lobbyID + "&name=" + playerName + "&id=" + playerID
+
+	tmpl, err := template.ParseFiles("server/templates/gameroom.html")
+	if err != nil {
+		http.Error(w, "Could not load template", http.StatusInternalServerError)
+		return false
+	}
+	data := struct {
+		WsURL      string
+		PlayerName string
+		LobbyID    string
+	}{
+		WsURL:      WsURL,
+		PlayerName: playerName,
+		LobbyID:    lobbyID,
+	}
+
+	err = tmpl.Execute(w, data)
+	if err != nil {
+		log.Println(err)
+	}
+	return true
 }
 
 func SendResetGameRoom(hub *Hub, client *Client) bool {
@@ -240,6 +270,33 @@ func BroadcastEndGame(hub *Hub, players []Player) bool {
 	}
 
 	hub.broadcasthtml <- tpl.String()
+
+	return true
+}
+
+func SendErrorMessage(client *Client, errorText string, ID string) bool {
+
+	tmpl, err := template.ParseFiles("server/templates/errorTextTemplate.html")
+	if err != nil {
+		log.Println("template parse error:", err)
+		return false
+	}
+
+	var tpl bytes.Buffer
+	data := struct {
+		ID        string
+		ErrorText string
+	}{
+		ID:        ID,
+		ErrorText: errorText,
+	}
+
+	if err := tmpl.Execute(&tpl, data); err != nil {
+		log.Println("template execute error:", err)
+		return false
+	}
+
+	client.sendhtml <- tpl.String()
 
 	return true
 }

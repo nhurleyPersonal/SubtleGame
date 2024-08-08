@@ -3,7 +3,6 @@ package server
 import (
 	"errors"
 	"github.com/google/uuid"
-	"html/template"
 	"log"
 	"net/http"
 	"strings"
@@ -80,27 +79,25 @@ func gameLobbyHandler(w http.ResponseWriter, r *http.Request) {
 	lobbyID := strings.ToUpper(r.URL.Query().Get("lobbyID"))
 	playerName := r.URL.Query().Get("name")
 	playerID := uuid.New().String()
-	wss := "wss://"
-	if r.Host == "localhost:8080" {
-		wss = "ws://"
-	}
-	WsURL := wss + r.Host + "/youmayenter?lobbyID=" + lobbyID + "&name=" + playerName + "&id=" + playerID
 
-	tmpl, err := template.ParseFiles("server/templates/gameroom.html")
-	if err != nil {
-		http.Error(w, "Could not load template", http.StatusInternalServerError)
+	hub, ok := hubMultiplexer.hubs[lobbyID]
+	if !ok {
+		w.WriteHeader(http.StatusNotFound)
+		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+		w.Write([]byte("Could not find requested lobby!"))
 		return
 	}
-	data := struct {
-		WsURL      string
-		PlayerName string
-		LobbyID    string
-	}{
-		WsURL:      WsURL,
-		PlayerName: playerName,
-		LobbyID:    lobbyID,
+
+	for _, player := range hub.gameState.Players {
+		if player.Name == playerName {
+			w.WriteHeader(http.StatusNotFound)
+			w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+			w.Write([]byte("Name taken already."))
+			return
+		}
 	}
-	tmpl.Execute(w, data)
+
+	SendIntialStartGame(r, w, lobbyID, playerName, playerID)
 }
 
 func createLobbyHandler(w http.ResponseWriter, r *http.Request) {

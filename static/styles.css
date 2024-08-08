@@ -231,9 +231,14 @@ html, body {
     margin-bottom: 20px;
 }
 
-.error-message {
+.error-text {
     color: red;
-    margin-top: 10px;
+    margin-top: 0;
+    margin-bottom: 0;
+}
+
+.error-text-displayed {
+    margin-bottom: 10px;
 }
 
 .player-list {

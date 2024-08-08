@@ -11,6 +11,15 @@ function handleKeydown(event) {
   const lettersContainer = selectedBox.querySelector(".letters-container");
   const letterBoxes = lettersContainer.querySelectorAll(".letter");
 
+  if (event.key === 'Enter' || event.keyCode === 13) {
+    // Prevent the default action if necessary (like form submission)
+    event.preventDefault();
+
+    if (document.getElementById("send-word-button")) {
+      document.getElementById('send-word-button').click();
+    }
+  }
+
   // Only process single character keys
   if (key.length === 1 && /[a-zA-Z]/.test(key)) {
     // Fill the current box with the typed letter

@@ -75,20 +75,23 @@ func handleJoinGame(hub *Hub, client *Client, msg JSONMessage) {
 }
 
 func handleStartGame(hub *Hub, client *Client, msg JSONMessage) {
-
+	canStartGame := true
 	playerList := make([]Player, 0)
 
 	for c, _ := range hub.clients {
-		log.Println("CLIENT", c)
 		playerList = append(playerList, c.player)
+		if !hub.gameState.Players[c.playerID].Ready {
+			canStartGame = false
+		}
 	}
 
-	log.Println(playerList)
+	if !canStartGame {
+		SendErrorMessage(client, "Please wait until all players are ready.", "0")
+	}
 
 	for c := range hub.clients {
 		clientPlayer := c.player
 
-		// Execute the self player template
 		gameroomTmpl, err := template.ParseFiles("server/templates/gameStartedRoom.html")
 		if err != nil {
 			log.Println("template parse error:", err)
@@ -128,11 +131,9 @@ func handleSetWord(hub *Hub, client *Client, msg JSONMessage) {
 		return
 	}
 
-	err := hub.gameState.SetWord(&client.player, word)
-	if err != nil {
-		client.send <- Message{
-			Type: "invalidWord",
-		}
+	ok := hub.gameState.SetWord(&client.player, word)
+	if !ok {
+		SendErrorMessage(client, "That is not a real word.", "0")
 		return
 	}
 
@@ -217,9 +218,7 @@ func handleGuessWord(hub *Hub, client *Client, msg JSONMessage) {
 	completelyCorrect, partiallyCorrect, ok := hub.gameState.GuessWord(guess, client.player.ID, targetPlayer)
 	if !ok {
 		SendCardReset(client, targetPlayer)
-		client.send <- Message{
-			Type: "invalidGuess",
-		}
+		SendErrorMessage(client, "That is not a real word.", targetPlayer)
 		return
 	}
 

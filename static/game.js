@@ -2,6 +2,17 @@ let round = 0;
 let inputWord = "";
 
 function joinGame(name, lobbyID) {
+  if (name === "") {
+    document.getElementById("error-text").innerText = "Please enter a name!";
+    document.getElementById("error-text").classList.add("error-text-displayed");
+    return
+  }
+  if (lobbyID === "") {
+    document.getElementById("error-text").innerText = "Please enter a valid lobby.";
+    document.getElementById("error-text").classList.add("error-text-displayed");
+    return
+  }
+
   fetch(
     `/gamelobby?lobbyID=${encodeURIComponent(
       lobbyID
@@ -15,13 +26,15 @@ function joinGame(name, lobbyID) {
   )
     .then((response) => {
       if (response.ok) {
-        return response.text(); // Get the HTML content
-      } else {
-        console.error("Failed to fetch from /gamelobby");
+        return response.text();
+      } else if (response.status === 404) {
+        response.text().then((text) => {
+          document.getElementById("error-text").innerText = text;
+          document.getElementById("error-text").classList.add("error-text-displayed");
+        })
       }
     })
     .then((html) => {
-      console.log(html);
       if (html) {
         document.body.innerHTML = html;
         htmx.process(document.body);

@@ -3,6 +3,7 @@ package server
 import (
 	"errors"
 	"log"
+	"strings"
 	"sync"
 	"time"
 )
@@ -71,13 +72,19 @@ func (gs *GameState) StartGame() bool {
 	return true
 }
 
-func (gs *GameState) SetWord(player *Player, word string) error {
+func (gs *GameState) SetWord(player *Player, word string) bool {
 	gs.mu.Lock()
 	defer gs.mu.Unlock()
+
+	ok := SpellChecker.SearchDirect(strings.ToLower(word))
+	if !ok {
+		return false
+	}
+
 	player.Word = word
 	player.Ready = true
 	gs.Players[player.ID] = *player
-	return nil
+	return true
 }
 
 func (gs *GameState) JoinGame(name string, playerID string, c *Client, hub *Hub) (Player, error) {
@@ -175,6 +182,11 @@ func (gs *GameState) GuessWord(word string, selfPlayerID string, targetPlayerID 
 	gs.mu.Lock()
 	defer gs.mu.Unlock()
 
+	ok := SpellChecker.SearchDirect(strings.ToLower(word))
+	if !ok {
+		return nil, nil, false
+	}
+
 	selfPlayer, ok := gs.Players[selfPlayerID]
 	if !ok {
 		return nil, nil, false
@@ -184,16 +196,6 @@ func (gs *GameState) GuessWord(word string, selfPlayerID string, targetPlayerID 
 	if !ok {
 		return nil, nil, false
 	}
-
-	// sc, err := spellcheck.New()
-	// if err != nil {
-	// 	fmt.Println(err)
-	// }
-
-	// ok = sc.SearchDirect(strings.ToLower(word))
-	// if !ok {
-	// 	return nil, nil, false
-	// }
 
 	if _, ok := selfPlayer.Guesses[targetPlayer.ID]; !ok {
 		selfPlayer.Guesses[targetPlayer.ID] = []string{}
@@ -247,5 +249,6 @@ func (gs *GameState) ResetGame() {
 		player.Word = ""
 		player.HasFinished = map[string]bool{}
 		player.Guesses = map[string][]string{}
+		player.Ready = false
 	}
 }

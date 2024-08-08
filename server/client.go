@@ -77,6 +77,7 @@ func handleJoinGame(hub *Hub, client *Client, msg JSONMessage) {
 func handleStartGame(hub *Hub, client *Client, msg JSONMessage) {
 	canStartGame := true
 	playerList := make([]Player, 0)
+	ClearErrorMessage(client, "0")
 
 	for c, _ := range hub.clients {
 		playerList = append(playerList, c.player)
@@ -126,9 +127,15 @@ func handleStartGame(hub *Hub, client *Client, msg JSONMessage) {
 
 func handleSetWord(hub *Hub, client *Client, msg JSONMessage) {
 	word := ""
+	ClearErrorMessage(client, "0")
 
 	if err := json.Unmarshal(msg.Body, &word); err != nil {
 		log.Println("unmarshal error:", err)
+		return
+	}
+
+	if len(word) != 5 {
+		SendErrorMessage(client, "Word needs to be 5 letters.", "0")
 		return
 	}
 
@@ -213,8 +220,13 @@ func handleGuessWord(hub *Hub, client *Client, msg JSONMessage) {
 
 	guess := body[0]
 	targetPlayer := strings.TrimPrefix(body[1], "id-")
-
 	lettersMapped := make([]LetterAndClass, 0, len(guess))
+	ClearErrorMessage(client, targetPlayer)
+
+	if len(guess) != 5 {
+		SendErrorMessage(client, "Word needs to be 5 letters.", targetPlayer)
+		return
+	}
 
 	completelyCorrect, partiallyCorrect, ok := hub.gameState.GuessWord(guess, client.player.ID, targetPlayer)
 	if !ok {
@@ -308,6 +320,7 @@ func handleNewGame(hub *Hub, client *Client, msg JSONMessage) {
 				continue
 			}
 			SendPlayerJoinLobby(client, cOther.playerName)
+			SendLobbySizeUpdate(client, len(hub.gameState.Players))
 		}
 	}
 }

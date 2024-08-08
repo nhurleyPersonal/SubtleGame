@@ -113,12 +113,15 @@ func (h *Hub) run() {
 
 				cPlayer := h.gameState.Players[cOther.player.ID]
 				SendPlayerJoinLobby(client, cOther.player.Name)
+				SendLobbySizeUpdate(client, len(h.gameState.Players))
 
 				if cPlayer.Ready {
 					SendLobbyPlayerReady(client, cOther.player.Name)
 				}
 
 				SendPlayerJoinLobby(cOther, client.player.Name)
+				SendLobbySizeUpdate(client, len(h.gameState.Players))
+
 			}
 
 			h.mu.Unlock() // Release the lock

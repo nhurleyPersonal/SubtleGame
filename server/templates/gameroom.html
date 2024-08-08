@@ -13,7 +13,14 @@
     <body>
         <div hx-ext="ws" ws-connect="{{.WsURL}}">
             <div id="playing-container" class="lobby-container">
-                <h1 class="lobby-code">Lobby: {{.LobbyID}}</h1>
+                <div class="space-between">
+                    <h1 style="margin-top: 10px; margin-bottom: 5px">Sub<span class="title-highlight">tle</span> </h1>
+                    <div style="display: flex; flex-direction: column">
+                        <h4 class="lobby-code" style="margin-bottom: 5px">Lobby: {{.LobbyID}}</h4>
+                        <h4 id="lobby-size" style="color: gray; margin-top:5px; margin-bottom: 0">Players: {{.LobbySize}}/6</h4>
+                    </div>
+
+                </div>
                 <div id="player-container" class="self-player-container">
                     <input id="self-hidden-input" type="text" class="player-hidden-input">
                     <h2 id="player-name" class="player-name">{{.PlayerName}}</h2>
@@ -36,7 +43,10 @@
                     </div>
                 </div>
                 <h4 id="error-text-0" class="error-text"></h4>
-                <div id="player-list" class="player-list">
+                <div class="align-leading">
+                    <ol id="player-list" class="lobby-list-ol">
+
+                    </ol>
                 </div>
                 <div class="bigger-spacer"></div>
             </div>

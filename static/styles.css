@@ -247,6 +247,7 @@ html, body {
     align-items: center;
     width: 95vw;
     padding: 20px;
+    padding-top: 5px;
 }
 
 .game-container {
@@ -273,9 +274,6 @@ html, body {
     margin-bottom: 10px;
 }
 
-.player-list {
-    margin-top: 0px;
-}
 .lobby-player-container {
     margin-top: 20px;
     display: flex;
@@ -333,6 +331,24 @@ html, body {
     display:flex;
     justify-content: center;
     align-items: center;
+}
+
+.align-leading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: start;
+    width: 100%;
+}
+
+.space-between {
+    display: flex;
+    flex-direction: row;
+    align-items: end;
+    justify-content: space-between;
+    width: 100%;
+    margin-top: 10px;
+    margin-bottom: 10px;
 }
 
 .send-word-button-container {
@@ -603,6 +619,28 @@ html, body {
 
 .endgame-list-li span:last-child {
     font-style: italic;
+}
+
+.lobby-list-ol {
+    columns: 25rem;
+    column-gap: 7rem;
+}
+
+.lobby-list-ol::marker {
+    content: counters(list-item, '') ': ';
+    font-weight: 700;
+    font-size: 1.0em;
+    color: #4CAF50;
+    top: 50%;
+}
+
+.lobby-list-li {
+    break-inside: avoid;
+    margin-bottom: 0.5rem;
+}
+
+.lobby-list-li span {
+    left: 10px;
 }
 
 .after-this-bs {

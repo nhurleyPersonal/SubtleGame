@@ -30,10 +30,12 @@ func SendIntialStartGame(r *http.Request, w http.ResponseWriter, lobbyID string,
 		WsURL      string
 		PlayerName string
 		LobbyID    string
+		LobbySize  int
 	}{
 		WsURL:      WsURL,
 		PlayerName: playerName,
 		LobbyID:    lobbyID,
+		LobbySize:  0,
 	}
 
 	err = tmpl.Execute(w, data)
@@ -193,6 +195,30 @@ func SendPlayerJoinLobby(client *Client, playerName string) bool {
 	return true
 }
 
+func SendLobbySizeUpdate(client *Client, lobbySize int) bool {
+	tmpl, err := template.ParseFiles("server/templates/lobbySize.html")
+	if err != nil {
+		log.Println("template parse error:", err)
+		return false
+	}
+
+	var tpl bytes.Buffer
+	data := struct {
+		LobbySize int
+	}{
+		LobbySize: lobbySize,
+	}
+
+	if err := tmpl.Execute(&tpl, data); err != nil {
+		log.Println("template execute error:", err)
+		return false
+	}
+
+	client.sendhtml <- tpl.String()
+
+	return true
+}
+
 func SendLobbyPlayerReady(client *Client, readyPlayerName string) bool {
 	tmpl, err := template.ParseFiles("server/templates/playerReadyLobby.html")
 	if err != nil {
@@ -289,6 +315,31 @@ func SendErrorMessage(client *Client, errorText string, ID string) bool {
 	}{
 		ID:        ID,
 		ErrorText: errorText,
+	}
+
+	if err := tmpl.Execute(&tpl, data); err != nil {
+		log.Println("template execute error:", err)
+		return false
+	}
+
+	client.sendhtml <- tpl.String()
+
+	return true
+}
+
+func ClearErrorMessage(client *Client, ID string) bool {
+
+	tmpl, err := template.ParseFiles("server/templates/clearError.html")
+	if err != nil {
+		log.Println("template parse error:", err)
+		return false
+	}
+
+	var tpl bytes.Buffer
+	data := struct {
+		ID string
+	}{
+		ID: ID,
 	}
 
 	if err := tmpl.Execute(&tpl, data); err != nil {

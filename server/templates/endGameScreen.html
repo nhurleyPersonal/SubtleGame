@@ -1,0 +1,18 @@
+<div id="playing-container" class="lobby-container">
+    <h1 class="endgame-title"><span>✰</span> {{.WinningPlayerName}} <span>✰</span></h1>
+    <h2 class="endgame-subtitle">Is the winner!</h2>
+    <div class="big-spacer"></div>
+    <ol class="endgame-list-ol">
+        <div style="height: .5rem"></div>
+        {{range $index, $item := .PlayerRankings}}
+        <li class="endgame-list-li"><span>{{$item.Name}}</span> <span>({{$item.Word}}) - {{$item.Score}}</span></li>
+        <div style="height: .5rem"></div>
+        {{end}}
+    </ol>
+
+    <div class="align-trailing">
+        <input type="hidden" id="resetGame-type" name="type" value="startNewGame">
+        <button class="start-game-button" id="start-game" ws-send hx-include="#resetGame-type" type="button">Start Game</button>
+    </div>
+
+</div>

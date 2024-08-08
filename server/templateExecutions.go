@@ -4,7 +4,40 @@ import (
 	"bytes"
 	"html/template"
 	"log"
+	"sort"
 )
+
+var FuncMap = template.FuncMap{
+	"add": func(a int, b int) int {
+		return a + b
+	},
+}
+
+func SendResetGameRoom(hub *Hub, client *Client) bool {
+	tmpl, err := template.ParseFiles("server/templates/resetGameRoom.html")
+	if err != nil {
+		log.Println("template parse error:", err)
+		return false
+	}
+
+	var tpl bytes.Buffer
+	data := struct {
+		LobbyID    string
+		PlayerName string
+	}{
+		LobbyID:    hub.serverCode,
+		PlayerName: client.playerName,
+	}
+
+	if err := tmpl.Execute(&tpl, data); err != nil {
+		log.Println("template execute error:", err)
+		return false
+	}
+
+	client.sendhtml <- tpl.String()
+
+	return true
+}
 
 func SendCardReset(client *Client, targetPlayerID string) bool {
 	resetTmpl, err := template.ParseFiles("server/templates/resetPlayerCard.html")
@@ -87,6 +120,7 @@ func SendCorrectGuess(client *Client, targetPlayer Player, guess string) bool {
 
 	return true
 }
+
 func UpdateStartButton(hub *Hub) bool {
 	readyTmpl, err := template.ParseFiles("server/templates/startGameButtonReady.html")
 	if err != nil {
@@ -95,7 +129,6 @@ func UpdateStartButton(hub *Hub) bool {
 	}
 
 	var readyTpl bytes.Buffer
-
 	if err := readyTmpl.Execute(&readyTpl, nil); err != nil {
 		log.Println("template execute error:", err)
 		return false
@@ -168,6 +201,37 @@ func BroadcastScoreUpdate(hub *Hub, playerID string, score int) bool {
 	}{
 		ID:    playerID,
 		Score: score,
+	}
+
+	if err := tmpl.Execute(&tpl, data); err != nil {
+		log.Println("template execute error:", err)
+		return false
+	}
+
+	hub.broadcasthtml <- tpl.String()
+
+	return true
+}
+
+func BroadcastEndGame(hub *Hub, players []Player) bool {
+	log.Println("GAME ENDED")
+	tmpl, err := template.ParseFiles("server/templates/endGameScreen.html")
+	if err != nil {
+		log.Println("template parse error:", err)
+		return false
+	}
+
+	sort.Slice(players, func(i, j int) bool {
+		return players[i].Score > players[j].Score
+	})
+
+	var tpl bytes.Buffer
+	data := struct {
+		WinningPlayerName string
+		PlayerRankings    []Player
+	}{
+		WinningPlayerName: players[0].Name,
+		PlayerRankings:    players,
 	}
 
 	if err := tmpl.Execute(&tpl, data); err != nil {

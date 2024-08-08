@@ -51,6 +51,9 @@ var messageHandlers = map[string]func(*Hub, *Client, JSONMessage){
 	"guessWord": func(hub *Hub, client *Client, msg JSONMessage) {
 		handleGuessWord(hub, client, msg)
 	},
+	"startNewGame": func(hub *Hub, client *Client, msg JSONMessage) {
+		handleNewGame(hub, client, msg)
+	},
 }
 
 func handleJoinGame(hub *Hub, client *Client, msg JSONMessage) {
@@ -232,6 +235,17 @@ func handleGuessWord(hub *Hub, client *Client, msg JSONMessage) {
 			}
 			return
 		}
+		playerSlice := make([]Player, 0)
+		for id, player := range hub.gameState.Players {
+			_, ok := guessingPlayer.HasFinished[id]
+			if !ok && player.ID != guessingPlayer.ID {
+				log.Println("HAS FINISHED", id, hub.gameState.Players[id].Name)
+				return
+			}
+			playerSlice = append(playerSlice, player)
+		}
+
+		ok = BroadcastEndGame(hub, playerSlice)
 		return
 	}
 
@@ -276,6 +290,26 @@ func handleGuessWord(hub *Hub, client *Client, msg JSONMessage) {
 		return
 	}
 
+}
+
+func handleNewGame(hub *Hub, client *Client, msg JSONMessage) {
+	hub.gameState.ResetGame()
+	for client := range hub.clients {
+		ok := SendResetGameRoom(hub, client)
+		client.send <- Message{
+			Type: "resetGame",
+			Body: "",
+		}
+		if !ok {
+			log.Println("send reset room error:", client.player.Name)
+		}
+		for cOther := range hub.clients {
+			if cOther == client {
+				continue
+			}
+			SendPlayerJoinLobby(client, cOther.playerName)
+		}
+	}
 }
 
 func handleShowPage(client *Client, msg JSONMessage) {

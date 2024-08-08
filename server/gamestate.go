@@ -240,3 +240,12 @@ func (gs *GameState) GuessWord(word string, selfPlayerID string, targetPlayerID 
 
 	return completelyCorrect, partiallyCorrect, true
 }
+
+func (gs *GameState) ResetGame() {
+	for _, player := range gs.Players {
+		player.Score = 0
+		player.Word = ""
+		player.HasFinished = map[string]bool{}
+		player.Guesses = map[string][]string{}
+	}
+}

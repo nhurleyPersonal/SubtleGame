@@ -514,6 +514,56 @@ html, body {
     height: 60px;
 }
 
+.endgame-title {
+    font-size: 2.0rem;
+    margin-bottom: 0.5rem;
+    color: #fff
+}
+
+.endgame-title span {
+    color: #4CAF50;
+}
+
+.endgame-subtitle {
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+    margin-top: 0.5rem;
+    color: #fff
+}
+
+.endgame-list-ol {
+    padding: 1.5rem 1.5rem 1.5rem 4em;
+    border: 0.3rem solid #4CAF50;
+    columns: 25rem;
+    column-gap: 7rem;
+    column-rule: 4px dotted turquoise;
+    border-radius: 0.5rem;
+}
+
+::marker {
+    content: counters(list-item, '') ': ';
+    font-weight: 700;
+    font-size: 1.5em;
+    color: #4CAF50;
+}
+
+.endgame-list-li {
+    break-inside: avoid;
+    margin-bottom: 0.5rem;
+}
+
+.endgame-list-li span {
+    display: block;
+}
+
+.endgame-list-li span:first-child {
+    font-size: 1.5em;
+}
+
+.endgame-list-li span:last-child {
+    font-style: italic;
+}
+
 .after-this-bs {
     display: flex;
     align-items: center;

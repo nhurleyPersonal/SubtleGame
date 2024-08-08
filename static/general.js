@@ -237,7 +237,6 @@ function buildPlayerLobbyView(playerInfo) {
 
 function attachEventListeners() {
   playerNameDivs = document.querySelectorAll(".player-container");
-  console.log(playerNameDivs);
   playerNameDivs.forEach((div, index) => {
     div.addEventListener("click", function (event) {
       event.stopPropagation();
@@ -246,7 +245,13 @@ function attachEventListeners() {
   });
 
   document.body.addEventListener("htmx:wsAfterMessage", function (event) {
-    document.body.height = document.body.height + 100
+    let message = null
+    if (event.detail.message[0] !== "<") {
+      message = JSON.parse(event.detail.message)
+      if (message.type === "resetGame") {
+        selectPlayer()
+      }
+    }
     playerNameDivs = document.querySelectorAll(".player-container");
     playerNameDivs.forEach((div, index) => {
       div.addEventListener("click", function (event) {

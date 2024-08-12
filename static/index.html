@@ -22,12 +22,40 @@
         </div>
         <div class="index-content">
             <input type="text" id="playername" placeholder="Name:" class="input-field" autocomplete="off">
-            <input type="text" id="serverid" placeholder="Server ID:" class="input-field" autocomplete="off">
+            <input type="text" id="serverid" placeholder="Lobby ID:" class="input-field" autocomplete="off">
             <h4 id="error-text" class="error-text"></h4>
             <div class="title-button-container">
-                <button id="createGameButton" class="server-create-button" onclick="createLobby()">Create Game</button> 
+                <button id="createGameButton" class="server-create-button" onclick="createLobby()">Create Game</button>
                 <button class="join-game-button" onclick="joinGame(document.getElementById('playername').value, document.getElementById('serverid').value)">Join Game</button>
-            </div>        
+            </div>
+            <p id="copiedClipboardText" class="copied-clipboard-text">Lobby ID copied to clipboard</p>
+            <div class="rules-toggle" onclick="toggleRules()">How to Play Subtle ↓</div>
+            <div id="rules-disclosure" class="rules-disclosure">
+                <h4 style="text-decoration: underline; margin-bottom: 5px; margin-top: 15px">Joining a Game</h4>
+                <ul class="how-to-play">
+                    <li class="how-to-play-li">This is a multiplayer game, you must have at least one other person to play with (up to a maximum of 6).</li>
+                    <li class="how-to-play-li">If you are the first player, click the Create Game button to generate a lobby ID.</li>
+                    <li class="how-to-play-li">Communicate this ID to the other people you would like to play with so they can join. </li>
+                    <li class="how-to-play-li">TIP: tap the button again to copy the code to your clipboard.</li>
+                    <li class="how-to-play-li">Once you have a lobby ID, input it into the Lobby ID field, make a name and click Join Game.</li>
+                </ul>
+                <h4 style="text-decoration: underline; margin-bottom: 5px; margin-top: 15px">How to Play</h4>
+                <ul class="how-to-play">
+                    <li class="how-to-play-li">Pick a 5 letter word, the other players will try to guess this word.</li>
+                    <li class="how-to-play-li">Once you have picked your word, click Set Word (or enter on your keyboard) to ready up.</li>
+                    <li class="how-to-play-li">When everyone is ready, click Start Game to start.</li>
+                    <li class="how-to-play-li">Once in game, tap on a player's name to start guessing their word.</li>
+                    <li class="how-to-play-li">After a guess letters that return green are the correct letter in the correct spot, letters that return yellow are the correct words in an incorrect spot.</li>
+                    <li class="how-to-play-li">The game ends when one player has correctly guessed everyone else's words.</li>
+                </ul>
+                <h4 style="text-decoration: underline; margin-bottom: 5px; margin-top: 15px">Scoring</h4>
+                <ul class="how-to-play">
+                    <li class="how-to-play-li">Each player's word can give a max score of 1000.</li>
+                    <li class="how-to-play-li">Each grey letter guessed subtracts 50 from the score, and each yellow subtracts 25. Green letters do not subtract from the score.</li>
+                    <li class="how-to-play-li">Each correctly guessed word adds to your total score.</li>
+                    <li class="how-to-play-li">TIP: The game ends as soon as one player finishes all words. In small games such as those with only two players, its important to guess quickly to be the first to finish as the second player will not receive any score.</li>
+                </ul>
+            </div>
         </div>
     </div>
 </body>

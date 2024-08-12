@@ -287,3 +287,7 @@ function resetPointer() {
 
   currentBoxIndex = 0;
 }
+
+function toggleRules() {
+  document.getElementById("rules-disclosure").classList.add("clicked");
+}

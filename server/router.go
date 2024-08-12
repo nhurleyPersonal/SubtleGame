@@ -66,15 +66,6 @@ func faviconHandler(w http.ResponseWriter, r *http.Request) {
 	http.ServeFile(w, r, "server/static/favicon.ico")
 }
 
-func rootHandler(w http.ResponseWriter, r *http.Request) {
-	fs := http.FileServer(http.Dir("static"))
-	if r.URL.Path == "/" {
-		http.Redirect(w, r, "/index.html", http.StatusFound)
-		return
-	}
-	fs.ServeHTTP(w, r)
-}
-
 func gameLobbyHandler(w http.ResponseWriter, r *http.Request) {
 	lobbyID := strings.ToUpper(r.URL.Query().Get("lobbyID"))
 	playerName := r.URL.Query().Get("name")
@@ -85,6 +76,13 @@ func gameLobbyHandler(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusNotFound)
 		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 		w.Write([]byte("Could not find requested lobby!"))
+		return
+	}
+
+	if hub.gameState.Started {
+		w.WriteHeader(http.StatusNotFound)
+		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+		w.Write([]byte("This game has already started."))
 		return
 	}
 

@@ -68,9 +68,10 @@ func handleJoinGame(hub *Hub, client *Client, msg JSONMessage) {
 		return
 	}
 
+	hub = hubMultiplexer.hubs[body.ServerID]
 	client.playerName = body.PlayerName
 
-	hubMultiplexer.hubs[body.ServerID].register <- client
+	hub.register <- client
 
 }
 
@@ -81,10 +82,9 @@ func handleStartGame(hub *Hub, client *Client, msg JSONMessage) {
 
 	for c, _ := range hub.clients {
 		playerList = append(playerList, c.player)
-		if !hub.gameState.Players[c.playerID].Ready {
-			canStartGame = false
-		}
 	}
+
+	canStartGame = hub.gameState.StartGame()
 
 	if !canStartGame {
 		SendErrorMessage(client, "Please wait until all players are ready.", "0")
@@ -92,7 +92,7 @@ func handleStartGame(hub *Hub, client *Client, msg JSONMessage) {
 	}
 
 	for c := range hub.clients {
-		clientPlayer := c.player
+		clientPlayer := hub.gameState.Players[c.playerID]
 
 		gameroomTmpl, err := template.ParseFiles("server/templates/gameStartedRoom.html")
 		if err != nil {

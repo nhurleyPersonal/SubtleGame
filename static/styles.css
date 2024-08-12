@@ -103,7 +103,6 @@ html, body {
     display: flex;
     justify-content: space-between;
     min-width: 50vw;
-    height: 10vh;
 }
 
 .server-create-button {
@@ -650,6 +649,60 @@ html, body {
     flex-direction: column;
     padding: 20px;
     position: relative;
+}
+
+.copied-clipboard-text {
+    font-size: 0.8rem;
+    padding-top: 10px;
+    padding-bottom: 5px;
+    margin-top: 0;
+    margin-bottom: 0;
+    color: gray;
+    display: block;
+    opacity: 0;
+}
+
+.copied-clipboard-text.clicked {
+    opacity: 100;
+}
+
+.how-to-play {
+    padding-left: 1rem;
+    padding-right: 1rem;
+    display: inline-block;
+    text-align: left;
+    min-width: 70vw;
+    max-width: 70vw;
+}
+
+.rules-toggle {
+    width: 75vw;
+    background-color: #424242;
+    color: white;
+    padding: 10px;
+    text-align: center;
+    cursor: pointer;
+    font-size: 1rem;
+    border-radius: 10px;
+}
+
+.rules-disclosure {
+    display: none;
+}
+
+.rules-disclosure.clicked {
+    display: block;
+}
+
+.how-to-play-li {
+    font-size: .8rem;
+    margin-bottom: 0.5rem;
+}
+
+.how-to-play-li::marker {
+    content: '•';
+    font-size: 1.0em;
+    color: white;
 }
 
 @media (max-width: 600px) {

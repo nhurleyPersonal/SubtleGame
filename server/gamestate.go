@@ -5,7 +5,6 @@ import (
 	"log"
 	"strings"
 	"sync"
-	"time"
 )
 
 type GameState struct {
@@ -55,20 +54,14 @@ func (gs *GameState) NewPlayer(name string, ID string) Player {
 func (gs *GameState) StartGame() bool {
 	gs.mu.Lock()
 	defer gs.mu.Unlock()
-	if gs.Started {
-		return false
-	}
-	gs.Started = true
-	gs.Round = 1
 
-	// Start a timer for 15 seconds
-	timer := time.NewTimer(15 * time.Second)
-	go func() {
-		<-timer.C
-		gs.mu.Lock()
-		defer gs.mu.Unlock()
-		gs.Round = 2
-	}()
+	for _, player := range gs.Players {
+		if !player.Ready {
+			return false
+		}
+	}
+
+	gs.Started = true
 	return true
 }
 

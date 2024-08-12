@@ -68,7 +68,7 @@ function createLobby() {
         navigator.clipboard
           .writeText(html.slice(html.indexOf(">") + 1, html.indexOf(">") + 7))
           .then(() => {
-            console.log("HTML copied to clipboard");
+            document.getElementById("copiedClipboardText").classList.add("clicked")
           })
           .catch((error) => {
             console.error("Error copying to clipboard:", error);

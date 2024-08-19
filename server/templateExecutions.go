@@ -122,7 +122,51 @@ func SendGuessResults(client *Client, targetPlayerID string, lettersMapped []Let
 	return true
 }
 
-// Need name because the entire div needs to be replaced, so need to know target name as well
+func SendTableLetterUpdate(client *Client, player *Player, targetPlayerID string, correctLetters []string, partiallyCorrect []string, incorrect []string) bool {
+	tmpl, err := template.ParseFiles("server/templates/TableLetterUpdate.html")
+	if err != nil {
+		log.Println("template parse error:", err)
+		return false
+	}
+	lettersMapped := make([]LetterAndClass, 0)
+	for _, letter := range correctLetters {
+		lettersMapped = append(lettersMapped, LetterAndClass{Letter: letter, Class: "table-letter-correct"})
+	}
+
+	for _, letter := range partiallyCorrect {
+		ok := player.CorrectLetters[targetPlayerID][letter]
+		if !ok {
+			lettersMapped = append(lettersMapped, LetterAndClass{Letter: letter, Class: "table-letter-partially-correct"})
+		}
+	}
+
+	for _, letter := range incorrect {
+		ok := player.CorrectLetters[targetPlayerID][letter]
+		ok2 := player.PartiallyCorrect[targetPlayerID][letter]
+		if !ok && !ok2 {
+			lettersMapped = append(lettersMapped, LetterAndClass{Letter: letter, Class: "table-letter-incorrect"})
+		}
+	}
+
+	var tpl bytes.Buffer
+	data := struct {
+		ID            string
+		LetterResults []LetterAndClass
+	}{
+		ID:            targetPlayerID,
+		LetterResults: lettersMapped,
+	}
+
+	if err := tmpl.Execute(&tpl, data); err != nil {
+		log.Println("template execute error:", err)
+		return false
+	}
+
+	client.sendhtml <- tpl.String()
+
+	return true
+}
+
 func SendCorrectGuess(client *Client, targetPlayer Player, guess string) bool {
 	correctTmpl, err := template.ParseFiles("server/templates/correctGuessCard.html")
 	if err != nil {

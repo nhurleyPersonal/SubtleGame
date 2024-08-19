@@ -236,6 +236,7 @@ func handleGuessWord(hub *Hub, client *Client, msg JSONMessage) {
 	}
 
 	guessingPlayer := hub.gameState.Players[client.player.ID]
+
 	// Execute correct guess template if its a correct guess
 	if len(completelyCorrect) == len(guess) {
 		BroadcastScoreUpdate(hub, guessingPlayer.ID, guessingPlayer.Score)
@@ -251,7 +252,6 @@ func handleGuessWord(hub *Hub, client *Client, msg JSONMessage) {
 		for id, player := range hub.gameState.Players {
 			_, ok := guessingPlayer.HasFinished[id]
 			if !ok && player.ID != guessingPlayer.ID {
-				log.Println("HAS FINISHED", id, hub.gameState.Players[id].Name)
 				return
 			}
 			playerSlice = append(playerSlice, player)
@@ -261,6 +261,11 @@ func handleGuessWord(hub *Hub, client *Client, msg JSONMessage) {
 		return
 	}
 
+	tableLetterCorrect := make([]string, 0)
+	tableLetterPartiallyCorrect := make([]string, 0)
+	tableLetterIncorrect := make([]string, 0)
+	incorrectHelper := [5]int{0, 0, 0, 0, 0}
+
 	// if not completely correct map the correct/partially correct letters to template
 	for i := 0; i < len(guess); i++ {
 		letter := string(guess[i])
@@ -269,6 +274,8 @@ func handleGuessWord(hub *Hub, client *Client, msg JSONMessage) {
 		if len(completelyCorrect) > 0 {
 			for _, num := range completelyCorrect {
 				if i == num {
+					incorrectHelper[i] = 1
+					tableLetterCorrect = append(tableLetterCorrect, letter)
 					class = "letter-correct"
 				}
 			}
@@ -277,6 +284,8 @@ func handleGuessWord(hub *Hub, client *Client, msg JSONMessage) {
 		if len(partiallyCorrect) > 0 {
 			for _, num := range partiallyCorrect {
 				if i == num {
+					incorrectHelper[i] = 1
+					tableLetterPartiallyCorrect = append(tableLetterPartiallyCorrect, letter)
 					class = "letter-partially-correct"
 				}
 			}
@@ -285,7 +294,22 @@ func handleGuessWord(hub *Hub, client *Client, msg JSONMessage) {
 		lettersMapped = append(lettersMapped, LetterAndClass{letter, class})
 	}
 
+	for i, flag := range incorrectHelper {
+		if flag == 0 {
+			tableLetterIncorrect = append(tableLetterIncorrect, string(guess[i]))
+		}
+	}
+
 	ok = SendGuessResults(client, targetPlayer, lettersMapped)
+
+	if !ok {
+		client.send <- Message{
+			Type: "invalidGuess",
+		}
+		return
+	}
+
+	ok = SendTableLetterUpdate(client, &guessingPlayer, targetPlayer, tableLetterCorrect, tableLetterPartiallyCorrect, tableLetterIncorrect)
 	if !ok {
 		client.send <- Message{
 			Type: "invalidGuess",
@@ -307,6 +331,7 @@ func handleGuessWord(hub *Hub, client *Client, msg JSONMessage) {
 func handleNewGame(hub *Hub, client *Client, msg JSONMessage) {
 	hub.gameState.ResetGame()
 	for client := range hub.clients {
+		log.Println("CLIENT RESET:", client.playerName, hub.gameState.Players[client.player.ID].Ready)
 		ok := SendResetGameRoom(hub, client)
 		client.send <- Message{
 			Type: "resetGame",

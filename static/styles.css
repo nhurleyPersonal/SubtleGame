@@ -430,6 +430,18 @@ html, body {
     font-weight: bold;
 }
 
+.table-letter-correct {
+    color: #4CAF50;
+}
+
+.table-letter-partially-correct {
+    color: #fccd49;
+}
+
+.table-letter-incorrect {
+    color: #888888;
+}
+
 .letter-filled-self {
     background-color: #4CAF50;
     display: flex;
@@ -683,7 +695,7 @@ html, body {
     text-align: center;
     cursor: pointer;
     font-size: 1rem;
-    border-radius: 10px;
+    border-radius: 5px;
 }
 
 .rules-disclosure {

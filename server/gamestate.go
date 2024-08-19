@@ -23,14 +23,17 @@ func NewGameState() GameState {
 }
 
 type Player struct {
-	Name        string
-	Word        string
-	Guesses     map[string][]string
-	HasFinished map[string]bool
-	Score       int
-	ID          string `json:"id"`
-	Leader      bool
-	Ready       bool
+	Name             string
+	Word             string
+	Guesses          map[string][]string
+	CorrectLetters   map[string]map[string]bool
+	PartiallyCorrect map[string]map[string]bool
+	GuessScores      map[string]int
+	HasFinished      map[string]bool
+	Score            int
+	ID               string `json:"id"`
+	Leader           bool
+	Ready            bool
 }
 
 type PassToClientPlayer struct {
@@ -41,13 +44,16 @@ type PassToClientPlayer struct {
 
 func (gs *GameState) NewPlayer(name string, ID string) Player {
 	return Player{
-		ID:          ID,
-		Name:        name,
-		Leader:      false,
-		Ready:       false,
-		Score:       0,
-		Guesses:     make(map[string][]string), // Initialize Guesses map
-		HasFinished: make(map[string]bool),     // Initialize HasFinished map
+		ID:               ID,
+		Name:             name,
+		Leader:           false,
+		Ready:            false,
+		Score:            0,
+		Guesses:          make(map[string][]string),
+		CorrectLetters:   make(map[string]map[string]bool),
+		PartiallyCorrect: make(map[string]map[string]bool),
+		GuessScores:      make(map[string]int),
+		HasFinished:      make(map[string]bool),
 	}
 }
 
@@ -192,6 +198,9 @@ func (gs *GameState) GuessWord(word string, selfPlayerID string, targetPlayerID 
 
 	if _, ok := selfPlayer.Guesses[targetPlayer.ID]; !ok {
 		selfPlayer.Guesses[targetPlayer.ID] = []string{}
+		selfPlayer.GuessScores[targetPlayer.ID] = 1000
+		selfPlayer.CorrectLetters[targetPlayer.ID] = make(map[string]bool)
+		selfPlayer.PartiallyCorrect[targetPlayer.ID] = make(map[string]bool)
 	}
 
 	for _, guess := range selfPlayer.Guesses[targetPlayer.ID] {
@@ -210,6 +219,7 @@ func (gs *GameState) GuessWord(word string, selfPlayerID string, targetPlayerID 
 	for i := 0; i < len(word); i++ {
 		if word[i] == targetWord[i] {
 			completelyCorrect = append(completelyCorrect, i)
+			selfPlayer.CorrectLetters[targetPlayer.ID][string(word[i])] = true
 			rebuiltTarget = replaceAtIndex(rebuiltTarget, '*', i)
 			rebuiltGuess = replaceAtIndex(rebuiltGuess, '*', i)
 		}
@@ -219,6 +229,7 @@ func (gs *GameState) GuessWord(word string, selfPlayerID string, targetPlayerID 
 		for j, target := range rebuiltTarget {
 			if guess == target && guess != rune('*') && target != rune('*') {
 				partiallyCorrect = append(partiallyCorrect, i)
+				selfPlayer.PartiallyCorrect[targetPlayer.ID][string(word[i])] = true
 				rebuiltTarget = replaceAtIndex(rebuiltTarget, '*', j)
 				rebuiltGuess = replaceAtIndex(rebuiltGuess, '*', i)
 			}
@@ -226,9 +237,11 @@ func (gs *GameState) GuessWord(word string, selfPlayerID string, targetPlayerID 
 	}
 
 	if len(completelyCorrect) == len(targetWord) {
-		selfPlayer.Score += 1000 - ((len(selfPlayer.Guesses[targetPlayer.ID]) - 1) * 100)
+		selfPlayer.Score += selfPlayer.GuessScores[targetPlayer.ID]
 		selfPlayer.HasFinished[targetPlayerID] = true
 	}
+
+	selfPlayer.GuessScores[targetPlayer.ID] -= (len(partiallyCorrect) * 25) + ((len(targetWord) - len(partiallyCorrect) - len(completelyCorrect)) * 50)
 
 	gs.Players[selfPlayerID] = selfPlayer
 	gs.Players[targetPlayerID] = targetPlayer
